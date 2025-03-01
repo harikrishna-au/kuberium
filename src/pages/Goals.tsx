@@ -251,12 +251,16 @@ const Goals = () => {
             })}
             
             <Card className="border-dashed flex items-center justify-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
-              <DialogTrigger asChild>
-                <CardContent className="flex flex-col items-center justify-center py-8">
+              <CardContent className="flex flex-col items-center justify-center py-8">
+                <Button 
+                  variant="ghost" 
+                  className="w-full h-full flex flex-col items-center justify-center" 
+                  onClick={() => setIsCreateGoalOpen(true)}
+                >
                   <PlusCircle className="h-10 w-10 text-muted-foreground mb-2" />
                   <p className="text-muted-foreground">Add New Goal</p>
-                </CardContent>
-              </DialogTrigger>
+                </Button>
+              </CardContent>
             </Card>
           </div>
         </TabsContent>
