@@ -56,6 +56,14 @@ export const fetchExpenses = async (): Promise<Expense[]> => {
 };
 
 export const addExpense = async (expense: Omit<Expense, "id">): Promise<Expense | null> => {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  
+  if (userError) {
+    console.error("User authentication error:", userError);
+    toast.error("Authentication error. Please log in again.");
+    return null;
+  }
+  
   const { data, error } = await supabase
     .from("expenses")
     .insert({
@@ -64,7 +72,8 @@ export const addExpense = async (expense: Omit<Expense, "id">): Promise<Expense 
       category_id: expense.category,
       date: expense.date,
       type: expense.type,
-      payment_method: expense.paymentMethod
+      payment_method: expense.paymentMethod,
+      user_id: userData.user?.id
     })
     .select()
     .single();
@@ -106,6 +115,14 @@ export const deleteExpense = async (id: string): Promise<boolean> => {
 
 // Budgets
 export const fetchBudgets = async (month: number, year: number): Promise<Budget | null> => {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  
+  if (userError) {
+    console.error("User authentication error:", userError);
+    toast.error("Authentication error. Please log in again.");
+    return null;
+  }
+  
   const { data, error } = await supabase
     .from("budgets")
     .select(`
@@ -114,40 +131,71 @@ export const fetchBudgets = async (month: number, year: number): Promise<Budget 
     `)
     .eq("month", month)
     .eq("year", year)
-    .single();
+    .eq("user_id", userData.user?.id)
+    .maybeSingle();
     
   if (error) {
-    if (error.code !== 'PGRST116') { // Not found
-      console.error("Error fetching budget:", error);
-      toast.error("Failed to load budget");
-    }
+    console.error("Error fetching budget:", error);
+    toast.error("Failed to load budget");
     return null;
   }
   
-  const budgetCategories: BudgetCategory[] = data.budget_categories.map((item: any) => ({
-    id: item.id,
-    categoryId: item.category_id,
-    amount: item.amount,
-    spent: 0, // Will be calculated from expenses
-  }));
+  if (!data) {
+    return null;
+  }
+  
+  // Calculate spent amount for each category
+  const { data: expenses, error: expenseError } = await supabase
+    .from("expenses")
+    .select("*")
+    .eq("user_id", userData.user?.id)
+    .eq("type", "expense")
+    .gte("date", new Date(year, month - 1, 1).toISOString())
+    .lt("date", new Date(year, month, 1).toISOString());
+    
+  if (expenseError) {
+    console.error("Error fetching expenses for budget:", expenseError);
+  }
+  
+  const budgetCategories: BudgetCategory[] = data.budget_categories.map((item: any) => {
+    // Calculate spent amount for this category
+    const categoryExpenses = expenses?.filter(exp => exp.category_id === item.category_id) || [];
+    const spent = categoryExpenses.reduce((sum: number, exp: any) => sum + parseFloat(exp.amount), 0);
+    
+    return {
+      id: item.id,
+      categoryId: item.category_id,
+      amount: parseFloat(item.amount),
+      spent: spent,
+    };
+  });
   
   return {
     id: data.id,
     month: data.month,
     year: data.year,
-    totalBudget: data.total_budget,
+    totalBudget: parseFloat(data.total_budget),
     categories: budgetCategories
   };
 };
 
 export const createBudget = async (budget: Omit<Budget, "id">): Promise<Budget | null> => {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  
+  if (userError) {
+    console.error("User authentication error:", userError);
+    toast.error("Authentication error. Please log in again.");
+    return null;
+  }
+  
   // First create the budget
   const { data: budgetData, error: budgetError } = await supabase
     .from("budgets")
     .insert({
       month: budget.month,
       year: budget.year,
-      total_budget: budget.totalBudget
+      total_budget: budget.totalBudget,
+      user_id: userData.user?.id
     })
     .select()
     .single();
@@ -180,17 +228,20 @@ export const createBudget = async (budget: Omit<Budget, "id">): Promise<Budget |
   
   toast.success("Budget created successfully!");
   
+  // Calculate spent amount for each category (initially 0 for new budget)
+  const budgetCategories: BudgetCategory[] = categoriesData.map((item: any) => ({
+    id: item.id,
+    categoryId: item.category_id,
+    amount: parseFloat(item.amount),
+    spent: 0
+  }));
+  
   return {
     id: budgetData.id,
     month: budgetData.month,
     year: budgetData.year,
-    totalBudget: budgetData.total_budget,
-    categories: categoriesData.map((item: any) => ({
-      id: item.id,
-      categoryId: item.category_id,
-      amount: item.amount,
-      spent: 0
-    }))
+    totalBudget: parseFloat(budgetData.total_budget),
+    categories: budgetCategories
   };
 };
 
@@ -213,9 +264,18 @@ export const updateBudget = async (budgetId: string, budgetCategory: { categoryI
 
 // Saving Goals
 export const fetchSavingGoals = async (): Promise<SavingGoal[]> => {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  
+  if (userError) {
+    console.error("User authentication error:", userError);
+    toast.error("Authentication error. Please log in again.");
+    return [];
+  }
+  
   const { data, error } = await supabase
     .from("saving_goals")
-    .select("*");
+    .select("*")
+    .eq("user_id", userData.user?.id);
     
   if (error) {
     console.error("Error fetching saving goals:", error);
@@ -226,20 +286,29 @@ export const fetchSavingGoals = async (): Promise<SavingGoal[]> => {
   return data.map(item => ({
     id: item.id,
     name: item.name,
-    targetAmount: item.target_amount,
-    currentAmount: item.current_amount,
+    targetAmount: parseFloat(item.target_amount),
+    currentAmount: parseFloat(item.current_amount),
     deadline: item.deadline
   }));
 };
 
 export const createSavingGoal = async (goal: Omit<SavingGoal, "id">): Promise<SavingGoal | null> => {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  
+  if (userError) {
+    console.error("User authentication error:", userError);
+    toast.error("Authentication error. Please log in again.");
+    return null;
+  }
+  
   const { data, error } = await supabase
     .from("saving_goals")
     .insert({
       name: goal.name,
       target_amount: goal.targetAmount,
       current_amount: goal.currentAmount,
-      deadline: goal.deadline
+      deadline: goal.deadline,
+      user_id: userData.user?.id
     })
     .select()
     .single();
@@ -255,8 +324,8 @@ export const createSavingGoal = async (goal: Omit<SavingGoal, "id">): Promise<Sa
   return {
     id: data.id,
     name: data.name,
-    targetAmount: data.target_amount,
-    currentAmount: data.current_amount,
+    targetAmount: parseFloat(data.target_amount),
+    currentAmount: parseFloat(data.current_amount),
     deadline: data.deadline
   };
 };
@@ -295,9 +364,18 @@ export const deleteSavingGoal = async (id: string): Promise<boolean> => {
 
 // Financial Insights
 export const fetchFinancialInsights = async (): Promise<FinancialInsight[]> => {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  
+  if (userError) {
+    console.error("User authentication error:", userError);
+    toast.error("Authentication error. Please log in again.");
+    return [];
+  }
+  
   const { data, error } = await supabase
     .from("financial_insights")
     .select("*")
+    .eq("user_id", userData.user?.id)
     .order("date", { ascending: false });
     
   if (error) {
@@ -367,4 +445,67 @@ export const generateFinancialTip = async (): Promise<string> => {
   ];
   
   return tips[Math.floor(Math.random() * tips.length)];
+};
+
+// Generate insights based on spending patterns
+export const generateInsights = async (): Promise<FinancialInsight[]> => {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  
+  if (userError) {
+    console.error("User authentication error:", userError);
+    return [];
+  }
+  
+  try {
+    // Get expense data
+    const expenses = await fetchExpenses();
+    const summary = await generateExpenseSummary();
+    
+    const insights: FinancialInsight[] = [];
+    
+    // Check if spending is higher than income
+    if (summary.totalExpenses > summary.totalIncome) {
+      const overspendingInsight: FinancialInsight = {
+        id: "auto-1",
+        title: "Spending Alert",
+        description: "Your spending exceeds your income this month. Consider reviewing your budget.",
+        type: "warning",
+        date: new Date().toISOString()
+      };
+      insights.push(overspendingInsight);
+      
+      // Save to database
+      await supabase.from("financial_insights").insert({
+        title: overspendingInsight.title,
+        description: overspendingInsight.description,
+        type: overspendingInsight.type,
+        user_id: userData.user?.id
+      });
+    }
+    
+    // Check if savings is improving
+    if (summary.netSavings > 0 && summary.netSavings > summary.totalIncome * 0.2) {
+      const savingsInsight: FinancialInsight = {
+        id: "auto-2",
+        title: "Savings Achievement",
+        description: "Great job! You've saved more than 20% of your income this month.",
+        type: "achievement",
+        date: new Date().toISOString()
+      };
+      insights.push(savingsInsight);
+      
+      // Save to database
+      await supabase.from("financial_insights").insert({
+        title: savingsInsight.title,
+        description: savingsInsight.description,
+        type: savingsInsight.type,
+        user_id: userData.user?.id
+      });
+    }
+    
+    return insights;
+  } catch (error) {
+    console.error("Error generating insights:", error);
+    return [];
+  }
 };

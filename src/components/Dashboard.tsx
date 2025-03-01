@@ -5,15 +5,30 @@ import ExpenseTracker from "@/components/ExpenseTracker";
 import ExpenseList from "@/components/ExpenseList";
 import InsightsCard from "@/components/InsightsCard";
 import { ChartGrid } from "@/components/Charts";
-import { ArrowDownIcon, ArrowUpIcon, IndianRupee, Wallet } from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon, IndianRupee, Wallet, Database } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { generateExpenseSummary } from "@/services/financeService";
 import { ExpenseSummary } from "@/utils/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { insertAllDummyData } from "@/utils/dummyData";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const [summary, setSummary] = useState<ExpenseSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isDummyDataLoading, setIsDummyDataLoading] = useState(false);
+  
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
+    };
+    
+    checkAuth();
+  }, []);
   
   useEffect(() => {
     const loadSummary = async () => {
@@ -38,9 +53,38 @@ const Dashboard = () => {
       maximumFractionDigits: 0
     }).format(amount);
   };
+
+  const handleAddDummyData = async () => {
+    setIsDummyDataLoading(true);
+    try {
+      await insertAllDummyData();
+      toast.success("Successfully added dummy data! Please refresh the page to see it.");
+    } catch (error) {
+      console.error("Error adding dummy data:", error);
+      toast.error("Failed to add dummy data");
+    } finally {
+      setIsDummyDataLoading(false);
+    }
+  };
   
   return (
     <div className="p-4 md:p-6 space-y-8 max-w-7xl mx-auto animate-fadeIn">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+        <h1 className="text-2xl font-bold tracking-tight">Financial Dashboard</h1>
+        
+        {isAuthenticated && (
+          <Button 
+            variant="outline" 
+            onClick={handleAddDummyData}
+            disabled={isDummyDataLoading}
+            className="flex items-center gap-2"
+          >
+            <Database className="h-4 w-4" />
+            {isDummyDataLoading ? "Adding Dummy Data..." : "Add Dummy Data"}
+          </Button>
+        )}
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {loading ? (
           // Skeleton loaders for loading state

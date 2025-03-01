@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, PieChart, LineChart, ResponsiveContainer, XAxis, YAxis, Bar, Pie, Line, Tooltip, Legend, Cell } from "recharts";
@@ -10,37 +10,106 @@ import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-
-// Sample data - would be replaced with real data from Supabase in production
-const monthlyData = [
-  { month: "Jan", income: 45000, expenses: 32000 },
-  { month: "Feb", income: 47000, expenses: 35000 },
-  { month: "Mar", income: 46000, expenses: 34000 },
-  { month: "Apr", income: 48000, expenses: 36000 },
-  { month: "May", income: 49000, expenses: 33000 },
-  { month: "Jun", income: 51000, expenses: 35000 },
-  { month: "Jul", income: 50000, expenses: 37000 },
-  { month: "Aug", income: 52000, expenses: 39000 },
-  { month: "Sep", income: 54000, expenses: 36000 },
-  { month: "Oct", income: 53000, expenses: 38000 },
-  { month: "Nov", income: 55000, expenses: 40000 },
-  { month: "Dec", income: 58000, expenses: 42000 },
-];
-
-const categoryData = [
-  { name: "Housing", value: 30, color: "#16a34a" },
-  { name: "Food", value: 20, color: "#ea580c" },
-  { name: "Transportation", value: 15, color: "#0284c7" },
-  { name: "Entertainment", value: 10, color: "#8b5cf6" },
-  { name: "Shopping", value: 8, color: "#ec4899" },
-  { name: "Utilities", value: 10, color: "#f59e0b" },
-  { name: "Health", value: 5, color: "#ef4444" },
-  { name: "Others", value: 2, color: "#64748b" },
-];
+import { fetchExpenses, fetchCategories } from "@/services/financeService";
+import { Expense, Category, MonthlyData, CategorySpending } from "@/utils/types";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 const Analytics = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [period, setPeriod] = useState("yearly");
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
+  const [categoryData, setCategoryData] = useState<CategorySpending[]>([]);
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [expensesData, categoriesData] = await Promise.all([
+          fetchExpenses(),
+          fetchCategories()
+        ]);
+        
+        setExpenses(expensesData);
+        setCategories(categoriesData);
+        
+        // Generate monthly data
+        const monthlyStats = generateMonthlyData(expensesData);
+        setMonthlyData(monthlyStats);
+        
+        // Generate category spending data
+        const categoryStats = generateCategoryData(expensesData, categoriesData);
+        setCategoryData(categoryStats);
+      } catch (error) {
+        console.error("Error fetching analytics data:", error);
+        toast.error("Failed to load analytics data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, []);
+  
+  // Generate monthly income and expense data
+  const generateMonthlyData = (expensesData: Expense[]): MonthlyData[] => {
+    const months: { [key: string]: { income: number; expenses: number } } = {};
+    
+    // Initialize all months
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    monthNames.forEach(month => {
+      months[month] = { income: 0, expenses: 0 };
+    });
+    
+    // Process expenses
+    expensesData.forEach(expense => {
+      const date = new Date(expense.date);
+      const month = monthNames[date.getMonth()];
+      
+      if (expense.type === 'income') {
+        months[month].income += Number(expense.amount);
+      } else {
+        months[month].expenses += Number(expense.amount);
+      }
+    });
+    
+    // Convert to array format for charts
+    return monthNames.map(month => ({
+      month,
+      income: months[month].income,
+      expenses: months[month].expenses
+    }));
+  };
+  
+  // Generate category spending data
+  const generateCategoryData = (expensesData: Expense[], categoriesData: Category[]): CategorySpending[] => {
+    const categoryAmounts: { [key: string]: number } = {};
+    
+    // Only include expenses, not income
+    const filteredExpenses = expensesData.filter(expense => expense.type === 'expense');
+    
+    // Calculate total for each category
+    filteredExpenses.forEach(expense => {
+      if (categoryAmounts[expense.category]) {
+        categoryAmounts[expense.category] += Number(expense.amount);
+      } else {
+        categoryAmounts[expense.category] = Number(expense.amount);
+      }
+    });
+    
+    // Map category IDs to names and colors
+    return Object.entries(categoryAmounts).map(([categoryId, value]) => {
+      const category = categoriesData.find(cat => cat.id === categoryId);
+      return {
+        name: category?.name || 'Unknown',
+        value,
+        color: category?.color || '#888888'
+      };
+    });
+  };
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto animate-fadeIn">
@@ -97,89 +166,102 @@ const Analytics = () => {
 
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {loading ? (
+              <>
+                <Skeleton className="h-[350px]" />
+                <Skeleton className="h-[350px]" />
+              </>
+            ) : (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Income vs Expenses</CardTitle>
+                    <CardDescription>Monthly comparison for the year</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                        <XAxis dataKey="month" />
+                        <YAxis />
+                        <Tooltip formatter={(value) => `₹${value}`} />
+                        <Legend />
+                        <Bar dataKey="income" fill="#10b981" name="Income" />
+                        <Bar dataKey="expenses" fill="#ef4444" name="Expenses" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Expense Breakdown</CardTitle>
+                    <CardDescription>Percentage by category</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex justify-center">
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                        <Pie
+                          data={categoryData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {categoryData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value) => `₹${value}`} />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </div>
+
+          {loading ? (
+            <Skeleton className="h-[350px]" />
+          ) : (
             <Card>
               <CardHeader>
-                <CardTitle>Income vs Expenses</CardTitle>
-                <CardDescription>Monthly comparison for the year</CardDescription>
+                <CardTitle>Savings Trend</CardTitle>
+                <CardDescription>Net savings over the past year</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <LineChart data={monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                     <XAxis dataKey="month" />
                     <YAxis />
-                    <Tooltip formatter={(value) => `₹${value}`} />
+                    <Tooltip formatter={(value, name) => [`₹${value}`, name === "income" ? "Income" : "Expenses"]} />
                     <Legend />
-                    <Bar dataKey="income" fill="#10b981" name="Income" />
-                    <Bar dataKey="expenses" fill="#ef4444" name="Expenses" />
-                  </BarChart>
+                    <Line 
+                      type="monotone" 
+                      dataKey="income" 
+                      stroke="#10b981" 
+                      name="Income" 
+                      strokeWidth={2}
+                      dot={{ r: 4 }}
+                      activeDot={{ r: 6 }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="expenses" 
+                      stroke="#ef4444" 
+                      name="Expenses" 
+                      strokeWidth={2}
+                      dot={{ r: 4 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Expense Breakdown</CardTitle>
-                <CardDescription>Percentage by category</CardDescription>
-              </CardHeader>
-              <CardContent className="flex justify-center">
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                    <Pie
-                      data={categoryData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {categoryData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Savings Trend</CardTitle>
-              <CardDescription>Net savings over the past year</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip formatter={(value, name) => [`₹${value}`, name === "income" ? "Income" : "Expenses"]} />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="income" 
-                    stroke="#10b981" 
-                    name="Income" 
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                    activeDot={{ r: 6 }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="expenses" 
-                    stroke="#ef4444" 
-                    name="Expenses" 
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="income" className="space-y-6">
@@ -189,9 +271,35 @@ const Analytics = () => {
               <CardDescription>Breakdown of your income</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                <p>Income analysis will be implemented in the next phase</p>
-              </div>
+              {loading ? (
+                <Skeleton className="h-[300px]" />
+              ) : expenses.filter(e => e.type === 'income').length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart
+                    data={
+                      expenses
+                        .filter(e => e.type === 'income')
+                        .map(e => {
+                          const category = categories.find(c => c.id === e.category);
+                          return {
+                            name: category?.name || 'Unknown',
+                            value: Number(e.amount)
+                          };
+                        })
+                    }
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => `₹${value}`} />
+                    <Bar dataKey="value" fill="#10b981" name="Amount" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                  <p>No income data available. Add some income transactions to see analysis.</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -203,9 +311,30 @@ const Analytics = () => {
               <CardDescription>Detailed view of spending by category</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                <p>Expense analysis will be implemented in the next phase</p>
-              </div>
+              {loading ? (
+                <Skeleton className="h-[300px]" />
+              ) : expenses.filter(e => e.type === 'expense').length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart
+                    data={categoryData}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    layout="vertical"
+                  >
+                    <XAxis type="number" />
+                    <YAxis dataKey="name" type="category" width={100} />
+                    <Tooltip formatter={(value) => `₹${value}`} />
+                    <Bar dataKey="value" fill="#ef4444" name="Amount">
+                      {categoryData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                  <p>No expense data available. Add some expense transactions to see analysis.</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -217,9 +346,42 @@ const Analytics = () => {
               <CardDescription>Analyze your financial patterns over time</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                <p>Trend analysis will be implemented in the next phase</p>
-              </div>
+              {loading ? (
+                <Skeleton className="h-[300px]" />
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart 
+                    data={monthlyData}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => `₹${value}`} />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="income" 
+                      stroke="#10b981" 
+                      name="Income" 
+                      strokeWidth={2}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="expenses" 
+                      stroke="#ef4444" 
+                      name="Expenses" 
+                      strokeWidth={2}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey={(item) => item.income - item.expenses} 
+                      stroke="#3b82f6" 
+                      name="Savings" 
+                      strokeWidth={2}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

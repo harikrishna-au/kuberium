@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { addExpense, fetchCategories } from "@/services/financeService";
 import { cn } from "@/lib/utils";
 import { ExpenseType, Category } from "@/utils/types";
+import { useNavigate } from "react-router-dom";
 
 const ExpenseTracker = () => {
   const [amount, setAmount] = useState("");
@@ -20,6 +21,7 @@ const ExpenseTracker = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -64,6 +66,9 @@ const ExpenseTracker = () => {
         setDescription("");
         setCategory("");
         setPaymentMethod("");
+        toast.success(`${type === 'income' ? 'Income' : 'Expense'} added successfully!`);
+        // Optionally refresh the expenses list on the same page or redirect
+        // navigate("/dashboard");
       }
     } catch (error) {
       console.error("Error adding expense:", error);

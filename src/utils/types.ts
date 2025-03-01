@@ -65,3 +65,33 @@ export interface ExpenseSummary {
     [key: string]: number;
   };
 }
+
+export interface ChartData {
+  name: string;
+  value: number;
+  color?: string;
+}
+
+export interface MonthlyData {
+  month: string;
+  income: number;
+  expenses: number;
+}
+
+export interface DailyData {
+  date: string;
+  amount: number;
+}
+
+export interface CategorySpending {
+  name: string;
+  value: number;
+  color: string;
+}
+
+export interface UserSettings {
+  id: string;
+  theme: string;
+  currency: string;
+  notificationEnabled: boolean;
+}
