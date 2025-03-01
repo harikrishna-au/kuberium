@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Bell, User, Menu } from "lucide-react";
+import { Bell, User, Menu, BarChartHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -29,17 +29,22 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
           </Button>
         )}
 
-        {!isMobile && (
+        {isMobile && (
           <div className="flex items-center space-x-2">
-            <span className="text-lg font-semibold text-primary">SavvySaver</span>
+            <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center text-primary-foreground">
+              <BarChartHorizontal className="h-5 w-5" />
+            </div>
+            <span className="text-lg font-semibold text-primary">FinAI</span>
           </div>
         )}
 
-        <div className="flex-1 mx-4">
-          <div className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">Today:</span> {new Date().toLocaleDateString("en-IN", { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' })}
+        {!isMobile && (
+          <div className="flex-1 mx-4">
+            <div className="text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">Today:</span> {new Date().toLocaleDateString("en-IN", { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' })}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="flex items-center space-x-3">
           <DropdownMenu>

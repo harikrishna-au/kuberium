@@ -4,7 +4,7 @@ import Navbar from "@/components/Navbar";
 import Dashboard from "@/components/Dashboard";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Home, BarChart3, Wallet, Target, BellRing, Settings, Menu, X } from "lucide-react";
+import { Home, BarChart3, Wallet, Target, BellRing, Settings, Menu, X, BarChartHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Index = () => {
@@ -39,7 +39,14 @@ const Index = () => {
               </Button>
             )}
             
-            <div className="space-y-1 mt-6">
+            <div className="flex items-center gap-2 px-2 mb-6">
+              <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center text-primary-foreground">
+                <BarChartHorizontal className="h-5 w-5" />
+              </div>
+              <span className="text-lg font-semibold">FinAI</span>
+            </div>
+            
+            <div className="space-y-1">
               <SidebarItem icon={<Home />} label="Dashboard" active />
               <SidebarItem icon={<BarChart3 />} label="Analytics" />
               <SidebarItem icon={<Wallet />} label="Budgets" />
