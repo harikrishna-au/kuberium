@@ -84,18 +84,6 @@ const Dashboard = () => {
           </div>
         </TabsContent>
       </Tabs>
-      
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <ExpenseList />
-        </div>
-        <div>
-          <div className="space-y-6">
-            <ExpenseTracker />
-            <InsightsCard />
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

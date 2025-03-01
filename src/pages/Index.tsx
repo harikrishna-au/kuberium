@@ -6,10 +6,12 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Home, BarChart3, Wallet, Target, BellRing, Settings, Menu, X, BarChartHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link, useLocation } from "react-router-dom";
 
 const Index = () => {
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
   
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -47,12 +49,48 @@ const Index = () => {
             </div>
             
             <div className="space-y-1">
-              <SidebarItem icon={<Home />} label="Dashboard" active />
-              <SidebarItem icon={<BarChart3 />} label="Analytics" />
-              <SidebarItem icon={<Wallet />} label="Budgets" />
-              <SidebarItem icon={<Target />} label="Goals" />
-              <SidebarItem icon={<BellRing />} label="Notifications" />
-              <SidebarItem icon={<Settings />} label="Settings" />
+              <SidebarItem 
+                icon={<Home />} 
+                label="Dashboard" 
+                to="/" 
+                active={location.pathname === "/"} 
+                onClick={() => isMobile && setSidebarOpen(false)}
+              />
+              <SidebarItem 
+                icon={<BarChart3 />} 
+                label="Analytics" 
+                to="/analytics" 
+                active={location.pathname === "/analytics"} 
+                onClick={() => isMobile && setSidebarOpen(false)}
+              />
+              <SidebarItem 
+                icon={<Wallet />} 
+                label="Budgets" 
+                to="/budgets" 
+                active={location.pathname === "/budgets"} 
+                onClick={() => isMobile && setSidebarOpen(false)}
+              />
+              <SidebarItem 
+                icon={<Target />} 
+                label="Goals" 
+                to="/goals" 
+                active={location.pathname === "/goals"} 
+                onClick={() => isMobile && setSidebarOpen(false)}
+              />
+              <SidebarItem 
+                icon={<BellRing />} 
+                label="Notifications" 
+                to="/notifications" 
+                active={location.pathname === "/notifications"} 
+                onClick={() => isMobile && setSidebarOpen(false)}
+              />
+              <SidebarItem 
+                icon={<Settings />} 
+                label="Settings" 
+                to="/settings" 
+                active={location.pathname === "/settings"} 
+                onClick={() => isMobile && setSidebarOpen(false)}
+              />
             </div>
             
             <div className="mt-6 p-4 bg-primary/10 rounded-lg">
@@ -110,26 +148,32 @@ const Index = () => {
 const SidebarItem = ({ 
   icon, 
   label, 
-  active = false 
+  active = false,
+  to,
+  onClick
 }: { 
   icon: React.ReactNode;
   label: string;
   active?: boolean;
+  to: string;
+  onClick?: () => void;
 }) => {
   return (
-    <button
-      className={cn(
-        "flex items-center space-x-3 w-full px-3 py-2 rounded-md text-sm transition-colors",
-        active 
-          ? "bg-primary text-white" 
-          : "text-foreground hover:bg-secondary"
-      )}
-    >
-      <span className={cn(active ? "text-white" : "text-muted-foreground")}>
-        {icon}
-      </span>
-      <span>{label}</span>
-    </button>
+    <Link to={to} onClick={onClick}>
+      <button
+        className={cn(
+          "flex items-center space-x-3 w-full px-3 py-2 rounded-md text-sm transition-colors",
+          active 
+            ? "bg-primary text-white" 
+            : "text-foreground hover:bg-secondary"
+        )}
+      >
+        <span className={cn(active ? "text-white" : "text-muted-foreground")}>
+          {icon}
+        </span>
+        <span>{label}</span>
+      </button>
+    </Link>
   );
 };
 
