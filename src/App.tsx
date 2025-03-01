@@ -12,26 +12,32 @@ import Budgets from "./pages/Budgets";
 import Goals from "./pages/Goals";
 import Notifications from "./pages/Notifications";
 import Settings from "./pages/Settings";
+import Auth from "./pages/Auth";
+import { AuthProvider } from "@/components/AuthProvider";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Layout><Index /></Layout>} />
-          <Route path="/analytics" element={<Layout><Analytics /></Layout>} />
-          <Route path="/budgets" element={<Layout><Budgets /></Layout>} />
-          <Route path="/goals" element={<Layout><Goals /></Layout>} />
-          <Route path="/notifications" element={<Layout><Notifications /></Layout>} />
-          <Route path="/settings" element={<Layout><Settings /></Layout>} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <AuthProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/" element={<ProtectedRoute><Layout><Index /></Layout></ProtectedRoute>} />
+            <Route path="/analytics" element={<ProtectedRoute><Layout><Analytics /></Layout></ProtectedRoute>} />
+            <Route path="/budgets" element={<ProtectedRoute><Layout><Budgets /></Layout></ProtectedRoute>} />
+            <Route path="/goals" element={<ProtectedRoute><Layout><Goals /></Layout></ProtectedRoute>} />
+            <Route path="/notifications" element={<ProtectedRoute><Layout><Notifications /></Layout></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

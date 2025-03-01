@@ -1,101 +1,116 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { financialInsights, getDailyFinancialTip } from "@/utils/mockData";
-import { AlertCircle, CheckCircle2, LightbulbIcon } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Lightbulb, TrendingUp, AlertCircle, Medal } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FinancialInsight } from "@/utils/types";
+import { fetchFinancialInsights, generateFinancialTip } from "@/services/financeService";
 
 const InsightsCard = () => {
-  const dailyTip = getDailyFinancialTip();
-  
-  // Sort insights by date (newest first)
-  const sortedInsights = [...financialInsights].sort((a, b) => 
-    new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
-  
+  const [insights, setInsights] = useState<FinancialInsight[]>([]);
+  const [dailyTip, setDailyTip] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadInsights = async () => {
+      try {
+        const [insightsData, tip] = await Promise.all([
+          fetchFinancialInsights(),
+          generateFinancialTip()
+        ]);
+        setInsights(insightsData.slice(0, 3)); // Show top 3 insights
+        setDailyTip(tip);
+      } catch (error) {
+        console.error("Error loading insights:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadInsights();
+  }, []);
+
+  const getInsightIcon = (type: string) => {
+    switch (type) {
+      case "tip":
+        return <Lightbulb className="h-4 w-4" />;
+      case "achievement":
+        return <Medal className="h-4 w-4" />;
+      case "warning":
+        return <AlertCircle className="h-4 w-4" />;
+      default:
+        return <TrendingUp className="h-4 w-4" />;
+    }
+  };
+
+  const getInsightColor = (type: string) => {
+    switch (type) {
+      case "tip":
+        return "bg-blue-50 text-blue-800 border-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-900/30";
+      case "achievement":
+        return "bg-green-50 text-green-800 border-green-100 dark:bg-green-900/20 dark:text-green-300 dark:border-green-900/30";
+      case "warning":
+        return "bg-amber-50 text-amber-800 border-amber-100 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-900/30";
+      default:
+        return "bg-gray-50 text-gray-800 border-gray-100 dark:bg-gray-800/20 dark:text-gray-300 dark:border-gray-800/30";
+    }
+  };
+
   return (
     <Card className="w-full h-full">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg">Financial Insights</CardTitle>
-        <CardDescription>AI-powered tips and recommendations</CardDescription>
+        <CardDescription>Smart recommendations for your finances</CardDescription>
       </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="insights" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="insights">Insights</TabsTrigger>
-            <TabsTrigger value="tip">Daily Tip</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="insights" className="space-y-4 pt-2">
-            {sortedInsights.map((insight) => (
-              <div 
-                key={insight.id}
-                className={cn(
-                  "p-4 rounded-lg border transition-all animate-slideUp",
-                  insight.type === 'warning' ? "bg-expense-50 border-expense-200 dark:bg-expense-950/20 dark:border-expense-900/30" :
-                  insight.type === 'achievement' ? "bg-income-50 border-income-200 dark:bg-income-950/20 dark:border-income-900/30" :
-                  "bg-secondary border-muted"
-                )}
-              >
-                <div className="flex">
-                  <div className="mr-3 mt-0.5">
-                    {insight.type === 'warning' ? (
-                      <AlertCircle className="h-5 w-5 text-expense-500" />
-                    ) : insight.type === 'achievement' ? (
-                      <CheckCircle2 className="h-5 w-5 text-income-500" />
-                    ) : (
-                      <LightbulbIcon className="h-5 w-5 text-primary" />
-                    )}
+      <CardContent className="space-y-4">
+        {loading ? (
+          // Show skeleton loader when loading
+          <div className="space-y-3">
+            <div className="h-24 bg-muted animate-pulse rounded-md"></div>
+            <div className="h-24 bg-muted animate-pulse rounded-md"></div>
+          </div>
+        ) : (
+          <>
+            <Alert className="bg-primary/10 border-primary/20">
+              <Lightbulb className="h-4 w-4 text-primary" />
+              <AlertTitle className="text-sm font-medium">Daily Tip</AlertTitle>
+              <AlertDescription className="text-xs">{dailyTip}</AlertDescription>
+            </Alert>
+
+            {insights.length > 0 ? (
+              insights.map((insight) => (
+                <Alert
+                  key={insight.id}
+                  className={cn("border", getInsightColor(insight.type))}
+                >
+                  <div className="flex-shrink-0 mr-1">
+                    {getInsightIcon(insight.type)}
                   </div>
                   <div>
-                    <h4 className={cn(
-                      "text-sm font-medium mb-1",
-                      insight.type === 'warning' ? "text-expense-800 dark:text-expense-400" :
-                      insight.type === 'achievement' ? "text-income-800 dark:text-income-400" :
-                      "text-foreground"
-                    )}>
+                    <AlertTitle className="text-sm font-medium flex items-center">
                       {insight.title}
-                    </h4>
-                    <p className="text-sm text-muted-foreground">
+                      <Badge
+                        variant="outline"
+                        className="ml-2 text-[10px] h-5 capitalize"
+                      >
+                        {insight.type}
+                      </Badge>
+                    </AlertTitle>
+                    <AlertDescription className="text-xs mt-1">
                       {insight.description}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {new Date(insight.date).toLocaleDateString("en-IN", {
-                        day: "numeric",
-                        month: "short",
-                      })}
-                    </p>
+                    </AlertDescription>
                   </div>
-                </div>
+                </Alert>
+              ))
+            ) : (
+              <div className="text-center py-4 text-muted-foreground text-sm">
+                No financial insights available yet. Add more transactions to get personalized insights.
               </div>
-            ))}
-          </TabsContent>
-          
-          <TabsContent value="tip" className="pt-2">
-            <div className="p-4 rounded-lg border border-primary/20 bg-primary/5 dark:bg-primary/10">
-              <div className="flex">
-                <div className="mr-3 mt-0.5">
-                  <LightbulbIcon className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium mb-1">Daily Financial Tip</h4>
-                  <p className="text-sm text-muted-foreground">{dailyTip}</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="mt-4 p-4 rounded-lg border bg-muted">
-              <h4 className="text-sm font-medium mb-2">Want personalized advice?</h4>
-              <p className="text-sm text-muted-foreground mb-4">
-                Our AI can analyze your spending patterns and provide custom recommendations.
-              </p>
-              <button className="text-sm text-primary hover:text-primary/80 font-medium">
-                Get Personalized Advice →
-              </button>
-            </div>
-          </TabsContent>
-        </Tabs>
+            )}
+          </>
+        )}
       </CardContent>
     </Card>
   );

@@ -3,9 +3,11 @@ import React, { useState } from "react";
 import Navbar from "@/components/Navbar";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Home, BarChart3, Wallet, Target, BellRing, Settings, X, BarChartHorizontal } from "lucide-react";
+import { Home, BarChart3, Wallet, Target, BellRing, Settings, X, BarChartHorizontal, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/components/AuthProvider";
+import { toast } from "sonner";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -15,9 +17,36 @@ const Layout = ({ children }: LayoutProps) => {
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success("Signed out successfully");
+      navigate("/auth");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast.error("Failed to sign out");
+    }
+  };
+  
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (!user?.email) return "U";
+    
+    const email = user.email;
+    const parts = email.split("@")[0].split(/[._-]/);
+    
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    
+    return email.substring(0, 2).toUpperCase();
   };
   
   return (
@@ -110,16 +139,27 @@ const Layout = ({ children }: LayoutProps) => {
               <div className="p-4 bg-muted rounded-lg">
                 <div className="flex items-center">
                   <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center">
-                    <span className="text-sm font-medium">RS</span>
+                    <span className="text-sm font-medium">{getUserInitials()}</span>
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm font-medium">Rahul Sharma</p>
+                    <p className="text-sm font-medium">{user?.email}</p>
                     <p className="text-xs text-muted-foreground">Free Plan</p>
                   </div>
                 </div>
-                <Button size="sm" variant="ghost" className="mt-3 w-full">
-                  View Profile
-                </Button>
+                <div className="mt-3 flex space-x-2">
+                  <Button size="sm" variant="ghost" className="flex-1">
+                    Profile
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="flex-1 text-red-500 hover:text-red-600 hover:bg-red-50"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="h-3.5 w-3.5 mr-1" />
+                    Logout
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

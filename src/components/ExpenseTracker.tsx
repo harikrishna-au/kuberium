@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,9 +7,9 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { categories } from "@/utils/mockData";
+import { addExpense, fetchCategories } from "@/services/financeService";
 import { cn } from "@/lib/utils";
-import { ExpenseType } from "@/utils/types";
+import { ExpenseType, Category } from "@/utils/types";
 
 const ExpenseTracker = () => {
   const [amount, setAmount] = useState("");
@@ -18,8 +18,25 @@ const ExpenseTracker = () => {
   const [type, setType] = useState<ExpenseType>("expense");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const data = await fetchCategories();
+        setCategories(data);
+      } catch (error) {
+        console.error("Error loading categories:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadCategories();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!amount || !description || !category || !paymentMethod) {
@@ -29,16 +46,31 @@ const ExpenseTracker = () => {
     
     setIsSubmitting(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      toast.success(`${type === 'income' ? 'Income' : 'Expense'} of ₹${amount} added successfully!`);
+    try {
+      const newExpense = {
+        amount: Number(amount),
+        description,
+        category,
+        date: new Date().toISOString(),
+        type,
+        paymentMethod
+      };
+      
+      const result = await addExpense(newExpense);
+      
+      if (result) {
+        // Reset form
+        setAmount("");
+        setDescription("");
+        setCategory("");
+        setPaymentMethod("");
+      }
+    } catch (error) {
+      console.error("Error adding expense:", error);
+      toast.error("Failed to add transaction. Please try again.");
+    } finally {
       setIsSubmitting(false);
-      // Reset form
-      setAmount("");
-      setDescription("");
-      setCategory("");
-      setPaymentMethod("");
-    }, 600);
+    }
   };
 
   return (
@@ -118,19 +150,23 @@ const ExpenseTracker = () => {
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories
-                    .filter(cat => 
-                      (type === "expense" && cat.id !== "9" && cat.id !== "10") || 
-                      (type === "income" && (cat.id === "9" || cat.id === "10"))
-                    )
-                    .map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>
-                        <div className="flex items-center">
-                          <span className="mr-2">{cat.icon}</span>
-                          <span>{cat.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
+                  {isLoading ? (
+                    <SelectItem value="loading" disabled>Loading categories...</SelectItem>
+                  ) : (
+                    categories
+                      .filter(cat => 
+                        (type === "expense" && cat.name !== "Income" && cat.name !== "Salary") || 
+                        (type === "income" && (cat.name === "Income" || cat.name === "Salary"))
+                      )
+                      .map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          <div className="flex items-center">
+                            <span className="mr-2">{cat.icon}</span>
+                            <span>{cat.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))
+                  )}
                 </SelectContent>
               </Select>
             </div>

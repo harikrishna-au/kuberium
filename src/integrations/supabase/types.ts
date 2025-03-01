@@ -54,6 +54,7 @@ export type Database = {
           id: string
           month: number
           total_budget: number
+          user_id: string | null
           year: number
         }
         Insert: {
@@ -61,6 +62,7 @@ export type Database = {
           id?: string
           month: number
           total_budget: number
+          user_id?: string | null
           year: number
         }
         Update: {
@@ -68,6 +70,7 @@ export type Database = {
           id?: string
           month?: number
           total_budget?: number
+          user_id?: string | null
           year?: number
         }
         Relationships: []
@@ -106,6 +109,7 @@ export type Database = {
           id: string
           payment_method: string
           type: string
+          user_id: string | null
         }
         Insert: {
           amount: number
@@ -116,6 +120,7 @@ export type Database = {
           id?: string
           payment_method: string
           type: string
+          user_id?: string | null
         }
         Update: {
           amount?: number
@@ -126,6 +131,7 @@ export type Database = {
           id?: string
           payment_method?: string
           type?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -145,6 +151,7 @@ export type Database = {
           id: string
           title: string
           type: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -153,6 +160,7 @@ export type Database = {
           id?: string
           title: string
           type: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -161,6 +169,7 @@ export type Database = {
           id?: string
           title?: string
           type?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -172,6 +181,7 @@ export type Database = {
           id: string
           name: string
           target_amount: number
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -180,6 +190,7 @@ export type Database = {
           id?: string
           name: string
           target_amount: number
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -188,6 +199,7 @@ export type Database = {
           id?: string
           name?: string
           target_amount?: number
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -198,6 +210,7 @@ export type Database = {
           id: string
           notification_enabled: boolean
           theme: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -205,6 +218,7 @@ export type Database = {
           id?: string
           notification_enabled?: boolean
           theme?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -212,6 +226,7 @@ export type Database = {
           id?: string
           notification_enabled?: boolean
           theme?: string
+          user_id?: string | null
         }
         Relationships: []
       }

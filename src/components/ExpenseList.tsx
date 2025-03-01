@@ -1,16 +1,43 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { categories, expenses } from "@/utils/mockData";
 import { cn } from "@/lib/utils";
-import { ChevronDown, ChevronUp, Search } from "lucide-react";
+import { ChevronDown, ChevronUp, Search, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Expense } from "@/utils/types";
+import { Expense, Category } from "@/utils/types";
+import { fetchExpenses, fetchCategories, deleteExpense } from "@/services/financeService";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const ExpenseList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [expensesData, categoriesData] = await Promise.all([
+          fetchExpenses(),
+          fetchCategories()
+        ]);
+        setExpenses(expensesData);
+        setCategories(categoriesData);
+      } catch (error) {
+        console.error("Error loading data:", error);
+        toast.error("Failed to load transaction data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadData();
+  }, []);
   
   // Helper to format currency
   const formatCurrency = (amount: number) => {
@@ -46,6 +73,18 @@ const ExpenseList = () => {
   const sortedExpenses = [...filteredExpenses].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
+
+  const handleDeleteExpense = async (id: string) => {
+    try {
+      const success = await deleteExpense(id);
+      if (success) {
+        setExpenses(expenses.filter(expense => expense.id !== id));
+      }
+    } catch (error) {
+      console.error("Error deleting expense:", error);
+      toast.error("Failed to delete transaction");
+    }
+  };
   
   return (
     <Card className="w-full h-full">
@@ -79,15 +118,30 @@ const ExpenseList = () => {
           </div>
           
           <TabsContent value="all" className="mt-0">
-            <ExpenseTable expenses={sortedExpenses} />
+            <ExpenseTable 
+              expenses={sortedExpenses} 
+              categories={categories} 
+              loading={loading} 
+              onDelete={handleDeleteExpense} 
+            />
           </TabsContent>
           
           <TabsContent value="expense" className="mt-0">
-            <ExpenseTable expenses={sortedExpenses} />
+            <ExpenseTable 
+              expenses={sortedExpenses} 
+              categories={categories} 
+              loading={loading} 
+              onDelete={handleDeleteExpense} 
+            />
           </TabsContent>
           
           <TabsContent value="income" className="mt-0">
-            <ExpenseTable expenses={sortedExpenses} />
+            <ExpenseTable 
+              expenses={sortedExpenses} 
+              categories={categories} 
+              loading={loading} 
+              onDelete={handleDeleteExpense} 
+            />
           </TabsContent>
         </Tabs>
       </CardContent>
@@ -96,7 +150,14 @@ const ExpenseList = () => {
 };
 
 // Expense Table Component
-const ExpenseTable = ({ expenses }: { expenses: Expense[] }) => {
+interface ExpenseTableProps {
+  expenses: Expense[];
+  categories: Category[];
+  loading: boolean;
+  onDelete: (id: string) => void;
+}
+
+const ExpenseTable = ({ expenses, categories, loading, onDelete }: ExpenseTableProps) => {
   // Helper to format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', { 
@@ -105,6 +166,17 @@ const ExpenseTable = ({ expenses }: { expenses: Expense[] }) => {
       maximumFractionDigits: 0
     }).format(amount);
   };
+  
+  if (loading) {
+    return (
+      <div className="rounded-md border overflow-hidden">
+        <div className="p-8 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-sm text-muted-foreground">Loading transactions...</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="rounded-md border overflow-hidden">
@@ -116,12 +188,13 @@ const ExpenseTable = ({ expenses }: { expenses: Expense[] }) => {
               <th className="h-10 px-4 text-left text-xs font-medium text-muted-foreground">Description</th>
               <th className="h-10 px-4 text-left text-xs font-medium text-muted-foreground">Category</th>
               <th className="h-10 px-4 text-right text-xs font-medium text-muted-foreground">Amount</th>
+              <th className="h-10 px-4 text-right text-xs font-medium text-muted-foreground">Actions</th>
             </tr>
           </thead>
           <tbody>
             {expenses.length === 0 ? (
               <tr>
-                <td colSpan={4} className="py-6 text-center text-muted-foreground">
+                <td colSpan={5} className="py-6 text-center text-muted-foreground">
                   No transactions found
                 </td>
               </tr>
@@ -146,8 +219,8 @@ const ExpenseTable = ({ expenses }: { expenses: Expense[] }) => {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center">
-                        <span className="mr-2">{category?.icon}</span>
-                        <span className="text-sm">{category?.name}</span>
+                        <span className="mr-2">{category?.icon || '📁'}</span>
+                        <span className="text-sm">{category?.name || 'Unknown'}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-right">
@@ -166,6 +239,32 @@ const ExpenseTable = ({ expenses }: { expenses: Expense[] }) => {
                           {formatCurrency(expense.amount)}
                         </span>
                       </div>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-600">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Transaction</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete this transaction? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction 
+                              className="bg-red-500 hover:bg-red-600"
+                              onClick={() => onDelete(expense.id)}
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </td>
                   </tr>
                 );
