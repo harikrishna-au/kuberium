@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { fetchSavingGoals, createSavingGoal, updateSavingGoal, deleteSavingGoal } from "@/services/financeService";
+import { fetchSavingGoals, createSavingGoal, updateSavingGoal, deleteSavingGoal } from "@/services";
 import { SavingGoal } from "@/utils/types";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";

@@ -7,7 +7,7 @@ import InsightsCard from "@/components/InsightsCard";
 import { ChartGrid } from "@/components/Charts";
 import { ArrowDownIcon, ArrowUpIcon, IndianRupee, Wallet, Database } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { generateExpenseSummary, fetchUserSettings } from "@/services/financeService";
+import { generateExpenseSummary, fetchUserSettings } from "@/services";
 import { ExpenseSummary, UserSettings } from "@/utils/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
