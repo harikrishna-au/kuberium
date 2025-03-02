@@ -15,7 +15,8 @@ export const fetchSavingGoals = async (): Promise<SavingGoal[]> => {
   const { data, error } = await supabase
     .from("saving_goals")
     .select("*")
-    .eq("user_id", userData.id);
+    .eq("user_id", userData.id)
+    .order("deadline");
     
   if (error) {
     console.error("Error fetching saving goals:", error);
@@ -23,7 +24,7 @@ export const fetchSavingGoals = async (): Promise<SavingGoal[]> => {
     return [];
   }
   
-  return data.map(item => ({
+  return data.map((item: any) => ({
     id: item.id,
     name: item.name,
     targetAmount: parseFloat(item.target_amount),
@@ -81,21 +82,5 @@ export const updateSavingGoal = async (id: string, amount: number): Promise<bool
   }
   
   toast.success("Saving goal updated successfully!");
-  return true;
-};
-
-export const deleteSavingGoal = async (id: string): Promise<boolean> => {
-  const { error } = await supabase
-    .from("saving_goals")
-    .delete()
-    .eq("id", id);
-    
-  if (error) {
-    console.error("Error deleting saving goal:", error);
-    toast.error("Failed to delete saving goal");
-    return false;
-  }
-  
-  toast.success("Saving goal deleted successfully!");
   return true;
 };

@@ -18,8 +18,8 @@ export const fetchBudgets = async (month: number, year: number): Promise<Budget 
       *,
       budget_categories(*)
     `)
-    .eq("month", month.toString())
-    .eq("year", year.toString())
+    .eq("month", month)
+    .eq("year", year)
     .eq("user_id", userData.id)
     .maybeSingle();
     
@@ -79,8 +79,8 @@ export const createBudget = async (budget: Omit<Budget, "id">): Promise<Budget |
   const { data: budgetData, error: budgetError } = await supabase
     .from("budgets")
     .insert({
-      month: budget.month.toString(),
-      year: budget.year.toString(),
+      month: budget.month,
+      year: budget.year,
       total_budget: budget.totalBudget,
       user_id: userData.id
     })

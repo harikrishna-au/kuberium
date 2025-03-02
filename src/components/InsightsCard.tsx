@@ -6,22 +6,18 @@ import { Badge } from "@/components/ui/badge";
 import { Lightbulb, TrendingUp, AlertCircle, Medal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FinancialInsight } from "@/utils/types";
-import { fetchFinancialInsights, generateFinancialTip } from "@/services/financeService";
+import { fetchFinancialInsights } from "@/services/insightService";
 
 const InsightsCard = () => {
   const [insights, setInsights] = useState<FinancialInsight[]>([]);
-  const [dailyTip, setDailyTip] = useState<string>("");
+  const [dailyTip, setDailyTip] = useState<string>("Save a small amount regularly to build a strong financial foundation.");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadInsights = async () => {
       try {
-        const [insightsData, tip] = await Promise.all([
-          fetchFinancialInsights(),
-          generateFinancialTip()
-        ]);
+        const insightsData = await fetchFinancialInsights();
         setInsights(insightsData.slice(0, 3)); // Show top 3 insights
-        setDailyTip(tip);
       } catch (error) {
         console.error("Error loading insights:", error);
       } finally {

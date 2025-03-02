@@ -1,22 +1,41 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { UserSettings, UserProfile } from "@/utils/types";
+import { User, UserSettings, UserProfile } from "@/utils/types";
 import { toast } from "sonner";
-import { getCurrentUser } from "./utils/serviceUtils";
 
-// User settings functionality
-export const fetchUserSettings = async (): Promise<UserSettings | null> => {
-  const userData = await getCurrentUser();
+export const getCurrentUser = async (): Promise<User | null> => {
+  const { data: { user } } = await supabase.auth.getUser();
   
-  if (!userData) {
+  if (!user) {
     return null;
   }
   
-  // First check if settings exist for this user
+  const { data: userSettings } = await supabase
+    .from("user_settings")
+    .select("*")
+    .eq("user_id", user.id)
+    .maybeSingle();
+    
+  return {
+    id: user.id,
+    email: user.email || '',
+    name: user.user_metadata?.full_name || 'User',
+    avatar: user.user_metadata?.avatar_url
+  };
+};
+
+export const getUserSettings = async (): Promise<UserSettings | null> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    return null;
+  }
+  
+  // Check if user settings exist
   const { data, error } = await supabase
     .from("user_settings")
     .select("*")
-    .eq("user_id", userData.id)
+    .eq("user_id", user.id)
     .maybeSingle();
     
   if (error) {
@@ -28,47 +47,31 @@ export const fetchUserSettings = async (): Promise<UserSettings | null> => {
   // If no settings exist, create default settings
   if (!data) {
     const defaultSettings = {
-      theme: "light",
-      currency: "INR",
-      notificationEnabled: true
+      user_id: user.id,
+      theme: 'light',
+      currency: 'USD',
+      notification_enabled: true
     };
     
-    return await createUserSettings(defaultSettings);
-  }
-  
-  return {
-    id: data.id,
-    theme: data.theme,
-    currency: data.currency,
-    notificationEnabled: data.notification_enabled
-  };
-};
-
-export const createUserSettings = async (settings: Omit<UserSettings, "id">): Promise<UserSettings | null> => {
-  const userData = await getCurrentUser();
-  
-  if (!userData) {
-    return null;
-  }
-  
-  const { data, error } = await supabase
-    .from("user_settings")
-    .insert({
-      theme: settings.theme,
-      currency: settings.currency,
-      notification_enabled: settings.notificationEnabled,
-      user_id: userData.id
-    })
-    .select()
-    .single();
+    const { data: newSettings, error: createError } = await supabase
+      .from("user_settings")
+      .insert(defaultSettings)
+      .select()
+      .single();
+      
+    if (createError) {
+      console.error("Error creating user settings:", createError);
+      toast.error("Failed to create user settings");
+      return null;
+    }
     
-  if (error) {
-    console.error("Error creating user settings:", error);
-    toast.error("Failed to create user settings");
-    return null;
+    return {
+      id: newSettings.id,
+      theme: newSettings.theme,
+      currency: newSettings.currency,
+      notificationEnabled: newSettings.notification_enabled
+    };
   }
-  
-  toast.success("Settings created successfully!");
   
   return {
     id: data.id,
@@ -78,168 +81,78 @@ export const createUserSettings = async (settings: Omit<UserSettings, "id">): Pr
   };
 };
 
-export const updateUserSettings = async (settings: Partial<UserSettings>): Promise<UserSettings | null> => {
-  const userData = await getCurrentUser();
+export const updateUserSettings = async (settings: Omit<UserSettings, "id">): Promise<boolean> => {
+  const { data: { user } } = await supabase.auth.getUser();
   
-  if (!userData) {
-    return null;
+  if (!user) {
+    return false;
   }
   
-  // First, get the current settings
-  const currentSettings = await fetchUserSettings();
-  
-  if (!currentSettings) {
-    toast.error("Could not find current settings");
-    return null;
-  }
-  
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("user_settings")
     .update({
-      theme: settings.theme || currentSettings.theme,
-      currency: settings.currency || currentSettings.currency,
-      notification_enabled: settings.notificationEnabled !== undefined 
-        ? settings.notificationEnabled 
-        : currentSettings.notificationEnabled
+      theme: settings.theme,
+      currency: settings.currency,
+      notification_enabled: settings.notificationEnabled
     })
-    .eq("id", currentSettings.id)
-    .select()
-    .single();
+    .eq("user_id", user.id);
     
   if (error) {
     console.error("Error updating user settings:", error);
     toast.error("Failed to update user settings");
-    return null;
+    return false;
   }
   
   toast.success("Settings updated successfully!");
-  
-  return {
-    id: data.id,
-    theme: data.theme,
-    currency: data.currency,
-    notificationEnabled: data.notification_enabled
-  };
+  return true;
 };
 
-// User profile functionality
-export const fetchUserProfile = async (): Promise<UserProfile | null> => {
-  const userData = await getCurrentUser();
+export const getUserProfile = async (): Promise<UserProfile | null> => {
+  const { data: { user } } = await supabase.auth.getUser();
   
-  if (!userData) {
+  if (!user) {
     return null;
   }
   
-  // First check if profile exists for this user
-  const { data, error } = await supabase
-    .from("user_profiles")
+  // Get user settings for currency and theme
+  const { data: userSettings } = await supabase
+    .from("user_settings")
     .select("*")
-    .eq("user_id", userData.id)
+    .eq("user_id", user.id)
     .maybeSingle();
-    
+  
+  return {
+    id: user.id,
+    name: user.user_metadata?.full_name || 'User',
+    email: user.email || '',
+    phone: user.phone || user.user_metadata?.phone || '',
+    avatar: user.user_metadata?.avatar_url || '',
+    currency: userSettings?.currency || 'USD',
+    theme: userSettings?.theme || 'light'
+  };
+};
+
+export const updateUserProfile = async (profile: Omit<UserProfile, "id" | "currency" | "theme">): Promise<boolean> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    return false;
+  }
+  
+  const { error } = await supabase.auth.updateUser({
+    email: profile.email !== user.email ? profile.email : undefined,
+    phone: profile.phone,
+    data: {
+      full_name: profile.name
+    }
+  });
+  
   if (error) {
-    console.error("Error fetching user profile:", error);
-    toast.error("Failed to load user profile");
-    return null;
+    console.error("Error updating user profile:", error);
+    toast.error("Failed to update profile");
+    return false;
   }
   
-  // Get user settings for currency and theme
-  const settings = await fetchUserSettings();
-  
-  // If no profile exists, create a default one with data from auth
-  if (!data) {
-    return {
-      id: userData.id,
-      name: userData.user_metadata?.full_name || "User",
-      email: userData.email || "",
-      currency: settings?.currency || "INR",
-      theme: settings?.theme || "light",
-    };
-  }
-  
-  return {
-    id: data.id,
-    name: data.name || userData.user_metadata?.full_name || "User",
-    email: data.email || userData.email || "",
-    phone: data.phone,
-    avatar: data.avatar,
-    currency: settings?.currency || "INR",
-    theme: settings?.theme || "light",
-  };
-};
-
-export const updateUserProfile = async (profile: Partial<UserProfile>): Promise<UserProfile | null> => {
-  const userData = await getCurrentUser();
-  
-  if (!userData) {
-    return null;
-  }
-  
-  // Check if profile exists
-  const { data: existingProfile } = await supabase
-    .from("user_profiles")
-    .select("*")
-    .eq("user_id", userData.id)
-    .maybeSingle();
-  
-  let result;
-  
-  if (!existingProfile) {
-    // Create new profile
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .insert({
-        user_id: userData.id,
-        name: profile.name,
-        email: profile.email || userData.email,
-        phone: profile.phone,
-        avatar: profile.avatar
-      })
-      .select()
-      .single();
-      
-    if (error) {
-      console.error("Error creating user profile:", error);
-      toast.error("Failed to create user profile");
-      return null;
-    }
-    
-    result = data;
-    toast.success("Profile created successfully!");
-  } else {
-    // Update existing profile
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .update({
-        name: profile.name !== undefined ? profile.name : existingProfile.name,
-        email: profile.email !== undefined ? profile.email : existingProfile.email,
-        phone: profile.phone !== undefined ? profile.phone : existingProfile.phone,
-        avatar: profile.avatar !== undefined ? profile.avatar : existingProfile.avatar
-      })
-      .eq("id", existingProfile.id)
-      .select()
-      .single();
-      
-    if (error) {
-      console.error("Error updating user profile:", error);
-      toast.error("Failed to update user profile");
-      return null;
-    }
-    
-    result = data;
-    toast.success("Profile updated successfully!");
-  }
-  
-  // Get user settings for currency and theme
-  const settings = await fetchUserSettings();
-  
-  return {
-    id: result.id,
-    name: result.name,
-    email: result.email,
-    phone: result.phone,
-    avatar: result.avatar,
-    currency: settings?.currency || "INR",
-    theme: settings?.theme || "light",
-  };
+  toast.success("Profile updated successfully!");
+  return true;
 };
