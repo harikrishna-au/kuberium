@@ -95,3 +95,13 @@ export interface UserSettings {
   currency: string;
   notificationEnabled: boolean;
 }
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  avatar?: string;
+  currency: string;
+  theme: string;
+}

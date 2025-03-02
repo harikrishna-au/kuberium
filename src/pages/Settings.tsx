@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,10 @@ import { User, CreditCard, Download, Moon, Sun, Smartphone, Laptop, LogOut, Shie
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
+import { fetchUserSettings, updateUserSettings } from "@/services/financeService";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 const Settings = () => {
   const { theme, setTheme } = useTheme();
@@ -20,6 +24,65 @@ const Settings = () => {
   const [analyticsEnabled, setAnalyticsEnabled] = useState(true);
   const [backupEnabled, setBackupEnabled] = useState(false);
   const [autoImportEnabled, setAutoImportEnabled] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [displayName, setDisplayName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  
+  const navigate = useNavigate();
+  
+  // Load user settings from Supabase
+  useEffect(() => {
+    const loadUserSettings = async () => {
+      setLoading(true);
+      try {
+        const settings = await fetchUserSettings();
+        if (settings) {
+          setCurrency(settings.currency);
+          setTheme(settings.theme);
+          setAnalyticsEnabled(settings.notificationEnabled);
+        }
+        
+        // Get user details
+        const { data: userData } = await supabase.auth.getUser();
+        if (userData.user) {
+          setEmail(userData.user.email || "");
+          setDisplayName(userData.user.user_metadata?.name || "User");
+          setPhoneNumber(userData.user.phone || "");
+        }
+      } catch (error) {
+        console.error("Error loading settings:", error);
+        toast.error("Failed to load settings");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadUserSettings();
+  }, [setTheme]);
+  
+  const handleSaveSettings = async () => {
+    try {
+      const updatedSettings = await updateUserSettings({
+        theme: theme as "light" | "dark" | "system",
+        currency,
+        notificationEnabled: analyticsEnabled
+      });
+      
+      if (updatedSettings) {
+        toast.success("Settings saved successfully");
+      }
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      toast.error("Failed to save settings");
+    }
+  };
+  
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    toast.success("Signed out successfully");
+    navigate('/auth');
+  };
   
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto animate-fadeIn">
@@ -28,6 +91,10 @@ const Settings = () => {
           <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
           <p className="text-muted-foreground">Manage your account and application preferences</p>
         </div>
+        <Button variant="outline" onClick={handleSignOut} className="flex items-center gap-2">
+          <LogOut className="h-4 w-4" />
+          Sign Out
+        </Button>
       </div>
 
       <Tabs defaultValue="general">
@@ -107,7 +174,9 @@ const Settings = () => {
               </div>
             </CardContent>
             <CardFooter>
-              <Button>Save Changes</Button>
+              <Button onClick={handleSaveSettings} disabled={loading}>
+                {loading ? "Loading..." : "Save Changes"}
+              </Button>
             </CardFooter>
           </Card>
 
@@ -171,17 +240,34 @@ const Settings = () => {
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="display-name">Display Name</Label>
-                <Input id="display-name" placeholder="Your Name" defaultValue="Rahul Sharma" />
+                <Input 
+                  id="display-name" 
+                  placeholder="Your Name" 
+                  value={displayName} 
+                  onChange={(e) => setDisplayName(e.target.value)} 
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="email">Email Address</Label>
-                <Input id="email" type="email" placeholder="Your Email" defaultValue="rahul.sharma@example.com" />
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="Your Email" 
+                  value={email} 
+                  readOnly 
+                  className="bg-gray-50"
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number</Label>
-                <Input id="phone" placeholder="Your Phone Number" defaultValue="+91 98765 43210" />
+                <Input 
+                  id="phone" 
+                  placeholder="Your Phone Number" 
+                  value={phoneNumber} 
+                  onChange={(e) => setPhoneNumber(e.target.value)} 
+                />
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">
@@ -308,6 +394,11 @@ const Settings = () => {
                 </div>
               </div>
             </CardContent>
+            <CardFooter>
+              <Button onClick={handleSaveSettings} disabled={loading}>
+                {loading ? "Loading..." : "Save Theme Settings"}
+              </Button>
+            </CardFooter>
           </Card>
 
           <Card>
@@ -392,7 +483,9 @@ const Settings = () => {
               </div>
             </CardContent>
             <CardFooter>
-              <Button>Save Notification Settings</Button>
+              <Button onClick={handleSaveSettings} disabled={loading}>
+                {loading ? "Loading..." : "Save Notification Settings"}
+              </Button>
             </CardFooter>
           </Card>
         </TabsContent>
@@ -429,7 +522,9 @@ const Settings = () => {
               </div>
             </CardContent>
             <CardFooter>
-              <Button>Save Privacy Settings</Button>
+              <Button onClick={handleSaveSettings} disabled={loading}>
+                {loading ? "Loading..." : "Save Privacy Settings"}
+              </Button>
             </CardFooter>
           </Card>
 

@@ -7,8 +7,8 @@ import InsightsCard from "@/components/InsightsCard";
 import { ChartGrid } from "@/components/Charts";
 import { ArrowDownIcon, ArrowUpIcon, IndianRupee, Wallet, Database } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { generateExpenseSummary } from "@/services/financeService";
-import { ExpenseSummary } from "@/utils/types";
+import { generateExpenseSummary, fetchUserSettings } from "@/services/financeService";
+import { ExpenseSummary, UserSettings } from "@/utils/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { insertAllDummyData } from "@/utils/dummyData";
@@ -20,6 +20,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isDummyDataLoading, setIsDummyDataLoading] = useState(false);
+  const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
   
   useEffect(() => {
     const checkAuth = async () => {
@@ -31,25 +32,30 @@ const Dashboard = () => {
   }, []);
   
   useEffect(() => {
-    const loadSummary = async () => {
+    const loadData = async () => {
       try {
+        // Load user settings to get currency preferences
+        const settings = await fetchUserSettings();
+        setUserSettings(settings);
+        
+        // Load summary data
         const data = await generateExpenseSummary();
         setSummary(data);
       } catch (error) {
-        console.error("Error loading summary:", error);
+        console.error("Error loading dashboard data:", error);
       } finally {
         setLoading(false);
       }
     };
     
-    loadSummary();
+    loadData();
   }, []);
   
   // Helper to format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', { 
       style: 'currency', 
-      currency: 'INR',
+      currency: userSettings?.currency || 'INR',
       maximumFractionDigits: 0
     }).format(amount);
   };
@@ -59,6 +65,9 @@ const Dashboard = () => {
     try {
       await insertAllDummyData();
       toast.success("Successfully added dummy data! Please refresh the page to see it.");
+      // Refresh the data
+      const data = await generateExpenseSummary();
+      setSummary(data);
     } catch (error) {
       console.error("Error adding dummy data:", error);
       toast.error("Failed to add dummy data");

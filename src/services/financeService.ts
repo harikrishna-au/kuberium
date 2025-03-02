@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { 
   Expense, 
@@ -7,7 +6,8 @@ import {
   SavingGoal, 
   FinancialInsight, 
   ExpenseSummary, 
-  Category 
+  Category, 
+  UserSettings
 } from "@/utils/types";
 import { toast } from "sonner";
 
@@ -129,8 +129,8 @@ export const fetchBudgets = async (month: number, year: number): Promise<Budget 
       *,
       budget_categories(*)
     `)
-    .eq("month", month)
-    .eq("year", year)
+    .eq("month", month.toString())
+    .eq("year", year.toString())
     .eq("user_id", userData.user?.id)
     .maybeSingle();
     
@@ -172,8 +172,8 @@ export const fetchBudgets = async (month: number, year: number): Promise<Budget 
   
   return {
     id: data.id,
-    month: data.month,
-    year: data.year,
+    month: parseInt(data.month),
+    year: parseInt(data.year),
     totalBudget: parseFloat(data.total_budget),
     categories: budgetCategories
   };
@@ -192,8 +192,8 @@ export const createBudget = async (budget: Omit<Budget, "id">): Promise<Budget |
   const { data: budgetData, error: budgetError } = await supabase
     .from("budgets")
     .insert({
-      month: budget.month,
-      year: budget.year,
+      month: budget.month.toString(),
+      year: budget.year.toString(),
       total_budget: budget.totalBudget,
       user_id: userData.user?.id
     })
@@ -238,8 +238,8 @@ export const createBudget = async (budget: Omit<Budget, "id">): Promise<Budget |
   
   return {
     id: budgetData.id,
-    month: budgetData.month,
-    year: budgetData.year,
+    month: parseInt(budgetData.month),
+    year: parseInt(budgetData.year),
     totalBudget: parseFloat(budgetData.total_budget),
     categories: budgetCategories
   };
@@ -508,4 +508,129 @@ export const generateInsights = async (): Promise<FinancialInsight[]> => {
     console.error("Error generating insights:", error);
     return [];
   }
+};
+
+// Now let's implement proper user settings functionality
+export const fetchUserSettings = async (): Promise<UserSettings | null> => {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  
+  if (userError || !userData.user) {
+    console.error("User authentication error:", userError);
+    toast.error("Authentication error. Please log in again.");
+    return null;
+  }
+  
+  // First check if settings exist for this user
+  const { data, error } = await supabase
+    .from("user_settings")
+    .select("*")
+    .eq("user_id", userData.user.id)
+    .maybeSingle();
+    
+  if (error) {
+    console.error("Error fetching user settings:", error);
+    toast.error("Failed to load user settings");
+    return null;
+  }
+  
+  // If no settings exist, create default settings
+  if (!data) {
+    const defaultSettings: Omit<UserSettings, "id"> = {
+      theme: "light",
+      currency: "INR",
+      notificationEnabled: true,
+      id: "" // Placeholder, will be replaced by the DB
+    };
+    
+    return await createUserSettings(defaultSettings);
+  }
+  
+  return {
+    id: data.id,
+    theme: data.theme,
+    currency: data.currency,
+    notificationEnabled: data.notification_enabled
+  };
+};
+
+export const createUserSettings = async (settings: Omit<UserSettings, "id">): Promise<UserSettings | null> => {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  
+  if (userError || !userData.user) {
+    console.error("User authentication error:", userError);
+    toast.error("Authentication error. Please log in again.");
+    return null;
+  }
+  
+  const { data, error } = await supabase
+    .from("user_settings")
+    .insert({
+      theme: settings.theme,
+      currency: settings.currency,
+      notification_enabled: settings.notificationEnabled,
+      user_id: userData.user.id
+    })
+    .select()
+    .single();
+    
+  if (error) {
+    console.error("Error creating user settings:", error);
+    toast.error("Failed to create user settings");
+    return null;
+  }
+  
+  toast.success("Settings created successfully!");
+  
+  return {
+    id: data.id,
+    theme: data.theme,
+    currency: data.currency,
+    notificationEnabled: data.notification_enabled
+  };
+};
+
+export const updateUserSettings = async (settings: Partial<UserSettings>): Promise<UserSettings | null> => {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  
+  if (userError || !userData.user) {
+    console.error("User authentication error:", userError);
+    toast.error("Authentication error. Please log in again.");
+    return null;
+  }
+  
+  // First, get the current settings
+  const currentSettings = await fetchUserSettings();
+  
+  if (!currentSettings) {
+    toast.error("Could not find current settings");
+    return null;
+  }
+  
+  const { data, error } = await supabase
+    .from("user_settings")
+    .update({
+      theme: settings.theme || currentSettings.theme,
+      currency: settings.currency || currentSettings.currency,
+      notification_enabled: settings.notificationEnabled !== undefined 
+        ? settings.notificationEnabled 
+        : currentSettings.notificationEnabled
+    })
+    .eq("id", currentSettings.id)
+    .select()
+    .single();
+    
+  if (error) {
+    console.error("Error updating user settings:", error);
+    toast.error("Failed to update user settings");
+    return null;
+  }
+  
+  toast.success("Settings updated successfully!");
+  
+  return {
+    id: data.id,
+    theme: data.theme,
+    currency: data.currency,
+    notificationEnabled: data.notification_enabled
+  };
 };
