@@ -44,8 +44,8 @@ export const createSavingGoal = async (goal: Omit<SavingGoal, "id">): Promise<Sa
     .from("saving_goals")
     .insert({
       name: goal.name,
-      target_amount: goal.targetAmount.toString(),
-      current_amount: goal.currentAmount.toString(),
+      target_amount: goal.targetAmount,
+      current_amount: goal.currentAmount,
       deadline: goal.deadline,
       user_id: userData.id
     })
@@ -72,7 +72,7 @@ export const createSavingGoal = async (goal: Omit<SavingGoal, "id">): Promise<Sa
 export const updateSavingGoal = async (id: string, amount: number): Promise<boolean> => {
   const { error } = await supabase
     .from("saving_goals")
-    .update({ current_amount: amount.toString() })
+    .update({ current_amount: amount })
     .eq("id", id);
     
   if (error) {
