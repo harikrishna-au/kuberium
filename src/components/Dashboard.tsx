@@ -93,8 +93,10 @@ const Dashboard = () => {
         )}
       </div>
       
-      {/* Add the AI Finance Assistant at the top of the dashboard */}
-      <DashboardAssistant />
+      {/* AI Finance Assistant with priority placement */}
+      <div className="mb-8">
+        <DashboardAssistant />
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {loading ? (

@@ -1,102 +1,148 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { SavingGoal } from "@/utils/types";
-import { toast } from "sonner";
-import { getCurrentUser } from "./utils/serviceUtils";
+import { getUserId } from "./utils/serviceUtils";
 
-// Saving Goals
-export const fetchSavingGoals = async (): Promise<SavingGoal[]> => {
-  const userData = await getCurrentUser();
-  
-  if (!userData) {
-    return [];
-  }
-  
-  const { data, error } = await supabase
-    .from("saving_goals")
-    .select("*")
-    .eq("user_id", userData.id)
-    .order("deadline");
-    
-  if (error) {
+export const getAllSavingGoals = async (): Promise<SavingGoal[]> => {
+  try {
+    const userId = await getUserId();
+
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+
+    const { data, error } = await supabase
+      .from("saving_goals")
+      .select("*")
+      .eq("user_id", userId)
+      .order("deadline", { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
     console.error("Error fetching saving goals:", error);
-    toast.error("Failed to load saving goals");
     return [];
   }
-  
-  return data.map((item: any) => ({
-    id: item.id,
-    name: item.name,
-    targetAmount: parseFloat(item.target_amount),
-    currentAmount: parseFloat(item.current_amount),
-    deadline: item.deadline
-  }));
 };
 
-export const createSavingGoal = async (goal: Omit<SavingGoal, "id">): Promise<SavingGoal | null> => {
-  const userData = await getCurrentUser();
-  
-  if (!userData) {
+export const getSavingGoalById = async (id: string): Promise<SavingGoal | null> => {
+  try {
+    const userId = await getUserId();
+
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+
+    const { data, error } = await supabase
+      .from("saving_goals")
+      .select("*")
+      .eq("id", id)
+      .eq("user_id", userId)
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error fetching saving goal:", error);
     return null;
   }
-  
-  const { data, error } = await supabase
-    .from("saving_goals")
-    .insert({
+};
+
+export const createSavingGoal = async (goal: SavingGoal): Promise<SavingGoal | null> => {
+  try {
+    const userId = await getUserId();
+
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+
+    // Make sure target_amount and current_amount are numbers
+    const goalToCreate = {
+      user_id: userId,
       name: goal.name,
-      target_amount: goal.targetAmount,
-      current_amount: goal.currentAmount,
+      target_amount: Number(goal.target_amount),
+      current_amount: Number(goal.current_amount || 0),
       deadline: goal.deadline,
-      user_id: userData.id
-    })
-    .select()
-    .single();
-    
-  if (error) {
+    };
+
+    const { data, error } = await supabase
+      .from("saving_goals")
+      .insert(goalToCreate)
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
     console.error("Error creating saving goal:", error);
-    toast.error("Failed to create saving goal");
     return null;
   }
-  
-  toast.success("Saving goal created successfully!");
-  
-  return {
-    id: data.id,
-    name: data.name,
-    targetAmount: parseFloat(data.target_amount),
-    currentAmount: parseFloat(data.current_amount),
-    deadline: data.deadline
-  };
 };
 
-export const updateSavingGoal = async (id: string, amount: number): Promise<boolean> => {
-  const { error } = await supabase
-    .from("saving_goals")
-    .update({ current_amount: amount })
-    .eq("id", id);
-    
-  if (error) {
+export const updateSavingGoal = async (goal: SavingGoal): Promise<SavingGoal | null> => {
+  try {
+    const userId = await getUserId();
+
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+
+    // Make sure target_amount and current_amount are numbers
+    const goalToUpdate = {
+      name: goal.name,
+      target_amount: Number(goal.target_amount),
+      current_amount: Number(goal.current_amount),
+      deadline: goal.deadline,
+    };
+
+    const { data, error } = await supabase
+      .from("saving_goals")
+      .update(goalToUpdate)
+      .eq("id", goal.id)
+      .eq("user_id", userId)
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
     console.error("Error updating saving goal:", error);
-    toast.error("Failed to update saving goal");
-    return false;
+    return null;
   }
-  
-  toast.success("Saving goal updated successfully!");
-  return true;
 };
 
 export const deleteSavingGoal = async (id: string): Promise<boolean> => {
-  const { error } = await supabase
-    .from("saving_goals")
-    .delete()
-    .eq("id", id);
-    
-  if (error) {
+  try {
+    const userId = await getUserId();
+
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+
+    const { error } = await supabase
+      .from("saving_goals")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", userId);
+
+    if (error) {
+      throw error;
+    }
+
+    return true;
+  } catch (error) {
     console.error("Error deleting saving goal:", error);
-    toast.error("Failed to delete saving goal");
     return false;
   }
-  
-  toast.success("Saving goal deleted successfully!");
-  return true;
 };
