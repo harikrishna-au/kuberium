@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { DataCard } from "@/components/ui/data-card";
 import ExpenseTracker from "@/components/ExpenseTracker";
@@ -7,13 +6,15 @@ import InsightsCard from "@/components/InsightsCard";
 import { ChartGrid } from "@/components/Charts";
 import { ArrowDownIcon, ArrowUpIcon, IndianRupee, Wallet, Database } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { generateExpenseSummary, fetchUserSettings } from "@/services";
+import { generateExpenseSummary } from "@/services";
+import { getUserSettings } from "@/services";
 import { ExpenseSummary, UserSettings } from "@/utils/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { insertAllDummyData } from "@/utils/dummyData";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import AIFinancialAssistant from "@/components/AIFinancialAssistant";
 
 const Dashboard = () => {
   const [summary, setSummary] = useState<ExpenseSummary | null>(null);
@@ -34,11 +35,9 @@ const Dashboard = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Load user settings to get currency preferences
-        const settings = await fetchUserSettings();
+        const settings = await getUserSettings();
         setUserSettings(settings);
         
-        // Load summary data
         const data = await generateExpenseSummary();
         setSummary(data);
       } catch (error) {
@@ -51,7 +50,6 @@ const Dashboard = () => {
     loadData();
   }, []);
   
-  // Helper to format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', { 
       style: 'currency', 
@@ -65,7 +63,6 @@ const Dashboard = () => {
     try {
       await insertAllDummyData();
       toast.success("Successfully added dummy data! Please refresh the page to see it.");
-      // Refresh the data
       const data = await generateExpenseSummary();
       setSummary(data);
     } catch (error) {
@@ -96,7 +93,6 @@ const Dashboard = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {loading ? (
-          // Skeleton loaders for loading state
           <>
             <Skeleton className="h-28" />
             <Skeleton className="h-28" />
@@ -167,6 +163,8 @@ const Dashboard = () => {
           </div>
         </TabsContent>
       </Tabs>
+      
+      <AIFinancialAssistant />
     </div>
   );
 };
