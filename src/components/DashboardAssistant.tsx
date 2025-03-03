@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +26,7 @@ const DashboardAssistant = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [animationState, setAnimationState] = useState("initial");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const assistantRef = useRef<HTMLDivElement>(null);
 
   // Sample suggestions for the user
   const suggestions = [
@@ -43,36 +43,50 @@ const DashboardAssistant = () => {
     }
   }, [messages]);
 
-  const toggleExpanded = () => {
+  useEffect(() => {
+    if (isExpanded && assistantRef.current) {
+      assistantRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [isExpanded]);
+
+  const toggleExpanded = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     setAnimationState("animating");
     setTimeout(() => {
       setIsExpanded(!isExpanded);
       if (isMinimized) setIsMinimized(false);
       
-      // Reset animation state after transition completes
       setTimeout(() => {
         setAnimationState("completed");
       }, 300);
     }, 50);
   };
 
-  const toggleMinimized = () => {
+  const toggleMinimized = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     setAnimationState("animating");
     setTimeout(() => {
       setIsMinimized(!isMinimized);
       if (!isMinimized) {
-        // If we're minimizing, also make sure it's not expanded
         setIsExpanded(false);
       }
       
-      // Reset animation state after transition completes
       setTimeout(() => {
         setAnimationState("completed");
       }, 300);
     }, 50);
   };
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = async (e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     if (!inputValue.trim()) return;
 
     const userMessage: AssistantMessage = {
@@ -85,7 +99,6 @@ const DashboardAssistant = () => {
     setInputValue("");
     setIsLoading(true);
 
-    // Simulate AI processing time
     setTimeout(() => {
       generateResponse(inputValue);
       setIsLoading(false);
@@ -117,7 +130,10 @@ const DashboardAssistant = () => {
     setMessages((prev) => [...prev, assistantMessage]);
   };
 
-  const handleSuggestionClick = (suggestion: string) => {
+  const handleSuggestionClick = (suggestion: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     setInputValue(suggestion);
     const userMessage: AssistantMessage = {
       role: "user",
@@ -128,7 +144,6 @@ const DashboardAssistant = () => {
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
 
-    // Simulate AI processing time
     setTimeout(() => {
       generateResponse(suggestion);
       setIsLoading(false);
@@ -159,6 +174,7 @@ const DashboardAssistant = () => {
 
   return (
     <Card 
+      ref={assistantRef}
       className={cn(
         "transition-all duration-300 ease-in-out overflow-hidden bg-card border shadow-md",
         isExpanded 
@@ -250,7 +266,7 @@ const DashboardAssistant = () => {
                 variant="outline" 
                 size="sm" 
                 className="text-xs transition-all duration-300 hover:bg-primary hover:text-white"
-                onClick={() => handleSuggestionClick(suggestion)}
+                onClick={(e) => handleSuggestionClick(suggestion, e)}
               >
                 {suggestion.length > (isExpanded ? 30 : 20) ? suggestion.substring(0, isExpanded ? 30 : 20) + "..." : suggestion}
               </Button>
@@ -260,7 +276,7 @@ const DashboardAssistant = () => {
       )}
       
       <CardFooter className="p-4 pt-2 border-t">
-        <div className="flex w-full items-center space-x-2">
+        <form onSubmit={handleSendMessage} className="flex w-full items-center space-x-2">
           <Input
             placeholder="Ask about your finances..."
             value={inputValue}
@@ -273,12 +289,11 @@ const DashboardAssistant = () => {
             type="submit" 
             size="icon"
             disabled={isLoading || !inputValue.trim()}
-            onClick={handleSendMessage}
             className="transition-all duration-300 hover:scale-105"
           >
             <Send className="h-4 w-4" />
           </Button>
-        </div>
+        </form>
       </CardFooter>
       
       {isExpanded && (
