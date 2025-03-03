@@ -100,34 +100,33 @@ export const createBudget = async (budget: Omit<Budget, "id">): Promise<Budget |
     budget_id: budgetData.id
   }));
   
-  const { data: categoriesData, error: categoriesError } = await supabase
-    .from("budget_categories")
-    .insert(budgetCategoriesData)
-    .select();
-    
-  if (categoriesError) {
-    console.error("Error creating budget categories:", categoriesError);
-    toast.error("Failed to create budget categories");
-    // Try to clean up the budget
-    await supabase.from("budgets").delete().eq("id", budgetData.id);
-    return null;
+  // Insert each category individually to avoid array issues
+  for (const categoryData of budgetCategoriesData) {
+    const { error: categoriesError } = await supabase
+      .from("budget_categories")
+      .insert(categoryData);
+      
+    if (categoriesError) {
+      console.error("Error creating budget category:", categoriesError);
+      toast.error("Failed to create some budget categories");
+    }
   }
   
   toast.success("Budget created successfully!");
   
   // Calculate spent amount for each category (initially 0 for new budget)
-  const budgetCategories: BudgetCategory[] = categoriesData.map((item: any) => ({
-    id: item.id,
-    categoryId: item.category_id,
-    amount: parseFloat(item.amount),
+  const budgetCategories: BudgetCategory[] = budget.categories.map((item, index) => ({
+    id: `temp-id-${index}`, // We don't have the real IDs from the database yet
+    categoryId: item.categoryId,
+    amount: item.amount,
     spent: 0
   }));
   
   return {
     id: budgetData.id,
-    month: parseInt(budgetData.month),
-    year: parseInt(budgetData.year),
-    totalBudget: parseFloat(budgetData.total_budget),
+    month: budget.month,
+    year: budget.year,
+    totalBudget: budget.totalBudget,
     categories: budgetCategories
   };
 };

@@ -31,7 +31,7 @@ export {
   fetchCategories,
   
   // Insight related exports
-  fetchFinancialInsights as getFinancialInsights,
+  fetchFinancialInsights,
   
   // User related exports
   getUserSettings,

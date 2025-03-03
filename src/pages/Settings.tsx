@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,7 +10,7 @@ import { User, CreditCard, Download, Moon, Sun, Smartphone, Laptop, LogOut, Shie
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
-import { fetchUserSettings, updateUserSettings } from "@/services/financeService";
+import { getUserSettings, updateUserSettings } from "@/services";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -31,19 +30,17 @@ const Settings = () => {
   
   const navigate = useNavigate();
   
-  // Load user settings from Supabase
   useEffect(() => {
     const loadUserSettings = async () => {
       setLoading(true);
       try {
-        const settings = await fetchUserSettings();
+        const settings = await getUserSettings();
         if (settings) {
           setCurrency(settings.currency);
           setTheme(settings.theme);
           setAnalyticsEnabled(settings.notificationEnabled);
         }
         
-        // Get user details
         const { data: userData } = await supabase.auth.getUser();
         if (userData.user) {
           setEmail(userData.user.email || "");
