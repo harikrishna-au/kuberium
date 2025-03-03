@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { DataCard } from "@/components/ui/data-card";
 import ExpenseTracker from "@/components/ExpenseTracker";
@@ -15,6 +16,7 @@ import { insertAllDummyData } from "@/utils/dummyData";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import AIFinancialAssistant from "@/components/AIFinancialAssistant";
+import DashboardAssistant from "@/components/DashboardAssistant";
 
 const Dashboard = () => {
   const [summary, setSummary] = useState<ExpenseSummary | null>(null);
@@ -90,6 +92,9 @@ const Dashboard = () => {
           </Button>
         )}
       </div>
+      
+      {/* Add the AI Finance Assistant at the top of the dashboard */}
+      <DashboardAssistant />
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {loading ? (
