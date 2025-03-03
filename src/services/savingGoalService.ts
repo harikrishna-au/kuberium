@@ -44,8 +44,8 @@ export const createSavingGoal = async (goal: Omit<SavingGoal, "id">): Promise<Sa
     .from("saving_goals")
     .insert({
       name: goal.name,
-      target_amount: goal.targetAmount,
-      current_amount: goal.currentAmount,
+      target_amount: goal.targetAmount.toString(),
+      current_amount: goal.currentAmount.toString(),
       deadline: goal.deadline,
       user_id: userData.id
     })
@@ -72,7 +72,7 @@ export const createSavingGoal = async (goal: Omit<SavingGoal, "id">): Promise<Sa
 export const updateSavingGoal = async (id: string, amount: number): Promise<boolean> => {
   const { error } = await supabase
     .from("saving_goals")
-    .update({ current_amount: amount })
+    .update({ current_amount: amount.toString() })
     .eq("id", id);
     
   if (error) {
@@ -82,5 +82,21 @@ export const updateSavingGoal = async (id: string, amount: number): Promise<bool
   }
   
   toast.success("Saving goal updated successfully!");
+  return true;
+};
+
+export const deleteSavingGoal = async (id: string): Promise<boolean> => {
+  const { error } = await supabase
+    .from("saving_goals")
+    .delete()
+    .eq("id", id);
+    
+  if (error) {
+    console.error("Error deleting saving goal:", error);
+    toast.error("Failed to delete saving goal");
+    return false;
+  }
+  
+  toast.success("Saving goal deleted successfully!");
   return true;
 };

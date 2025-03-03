@@ -3,9 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { fetchBudgets, createBudget } from "@/services";
+import { fetchBudgets, createBudget, fetchCategories } from "@/services";
 import { Budget, Category } from "@/utils/types";
-import { fetchCategories } from "@/services";
 import { useQuery } from '@tanstack/react-query';
 import { toast } from "sonner";
 
@@ -27,11 +26,12 @@ const Budgets = () => {
   
   const handleCreateBudget = async () => {
     // Create a budget with default allocations
+    const categoriesArray = categories as Category[];
     const newBudget: Omit<Budget, "id"> = {
       month: selectedMonth,
       year: selectedYear,
       totalBudget: 10000, // Default total budget
-      categories: categories.map((category: Category) => ({
+      categories: categoriesArray.map((category: Category) => ({
         id: '',
         categoryId: category.id,
         amount: 1000, // Default amount per category
@@ -97,7 +97,8 @@ const Budgets = () => {
             <CardContent>
               <div className="space-y-4">
                 {budget.categories.map((category) => {
-                  const categoryData = categories.find(c => c.id === category.categoryId);
+                  const categoriesArray = categories as Category[];
+                  const categoryData = categoriesArray.find(c => c.id === category.categoryId);
                   const percentSpent = (category.spent / category.amount) * 100;
                   
                   return (

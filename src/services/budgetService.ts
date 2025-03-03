@@ -18,8 +18,8 @@ export const fetchBudgets = async (month: number, year: number): Promise<Budget 
       *,
       budget_categories(*)
     `)
-    .eq("month", month)
-    .eq("year", year)
+    .eq("month", month.toString())
+    .eq("year", year.toString())
     .eq("user_id", userData.id)
     .maybeSingle();
     
@@ -79,9 +79,9 @@ export const createBudget = async (budget: Omit<Budget, "id">): Promise<Budget |
   const { data: budgetData, error: budgetError } = await supabase
     .from("budgets")
     .insert({
-      month: budget.month,
-      year: budget.year,
-      total_budget: budget.totalBudget,
+      month: budget.month.toString(),
+      year: budget.year.toString(),
+      total_budget: budget.totalBudget.toString(),
       user_id: userData.id
     })
     .select()
@@ -96,7 +96,7 @@ export const createBudget = async (budget: Omit<Budget, "id">): Promise<Budget |
   // Then create budget categories
   const budgetCategoriesData = budget.categories.map(category => ({
     category_id: category.categoryId,
-    amount: category.amount,
+    amount: category.amount.toString(),
     budget_id: budgetData.id
   }));
   
@@ -135,7 +135,7 @@ export const createBudget = async (budget: Omit<Budget, "id">): Promise<Budget |
 export const updateBudget = async (budgetId: string, budgetCategory: { categoryId: string, amount: number }): Promise<boolean> => {
   const { error } = await supabase
     .from("budget_categories")
-    .update({ amount: budgetCategory.amount })
+    .update({ amount: budgetCategory.amount.toString() })
     .eq("budget_id", budgetId)
     .eq("category_id", budgetCategory.categoryId);
     
