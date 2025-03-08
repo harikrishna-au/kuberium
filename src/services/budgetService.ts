@@ -1,6 +1,7 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Budget, BudgetCategory } from "@/utils/types";
-import { getUserId } from "./utils/serviceUtils";
+import { getUserId, mapDbBudgetToType, mapDbBudgetCategoryToType } from "./utils/serviceUtils";
 
 export const getAllBudgets = async (): Promise<Budget[]> => {
   try {
@@ -12,14 +13,14 @@ export const getAllBudgets = async (): Promise<Budget[]> => {
 
     const { data, error } = await supabase
       .from("budgets")
-      .select("*")
+      .select("*, budget_categories(*)")
       .eq("user_id", userId);
 
     if (error) {
       throw error;
     }
 
-    return data || [];
+    return (data || []).map(mapDbBudgetToType);
   } catch (error) {
     console.error("Error fetching budgets:", error);
     return [];
@@ -45,7 +46,7 @@ export const getBudgetById = async (id: string): Promise<Budget | null> => {
       throw error;
     }
 
-    return data;
+    return data ? mapDbBudgetToType(data) : null;
   } catch (error) {
     console.error("Error fetching budget:", error);
     return null;
@@ -72,7 +73,7 @@ export const getBudgetByMonthYear = async (month: number, year: number): Promise
       throw error;
     }
 
-    return data;
+    return data ? mapDbBudgetToType(data) : null;
   } catch (error) {
     console.error("Error fetching budget:", error);
     return null;
@@ -116,7 +117,7 @@ export const updateBudget = async (budget: Budget): Promise<Budget | null> => {
     const { data, error } = await supabase
       .from("budgets")
       .update({
-        total_budget: budget.total_budget,
+        total_budget: budget.totalBudget,
       })
       .eq("id", budget.id)
       .eq("user_id", userId)
@@ -127,14 +128,14 @@ export const updateBudget = async (budget: Budget): Promise<Budget | null> => {
       throw error;
     }
 
-    return data;
+    return data ? mapDbBudgetToType(data) : null;
   } catch (error) {
     console.error("Error updating budget:", error);
     return null;
   }
 };
 
-export const createBudget = async (month: number, year: number, totalBudget: number): Promise<Budget | null> => {
+export const createBudget = async (budget: Omit<Budget, "id">): Promise<Budget | null> => {
   try {
     const userId = await getUserId();
 
@@ -146,9 +147,9 @@ export const createBudget = async (month: number, year: number, totalBudget: num
       .from("budgets")
       .insert({
         user_id: userId,
-        month: month,
-        year: year,
-        total_budget: totalBudget,
+        month: budget.month,
+        year: budget.year,
+        total_budget: budget.totalBudget,
       })
       .select()
       .single();
@@ -157,7 +158,25 @@ export const createBudget = async (month: number, year: number, totalBudget: num
       throw error;
     }
 
-    return data;
+    const newBudget = data ? mapDbBudgetToType(data) : null;
+    
+    // If we have categories to add and the budget was created successfully
+    if (newBudget && budget.categories && budget.categories.length > 0) {
+      await Promise.all(budget.categories.map(category => 
+        createBudgetCategory({
+          id: '',
+          categoryId: category.categoryId,
+          amount: category.amount,
+          spent: 0,
+          budgetId: newBudget.id
+        })
+      ));
+      
+      // Fetch the budget again with categories
+      return await getBudgetById(newBudget.id);
+    }
+
+    return newBudget;
   } catch (error) {
     console.error("Error creating budget:", error);
     return null;
@@ -175,7 +194,7 @@ export const getAllBudgetCategories = async (budgetId: string): Promise<BudgetCa
       throw error;
     }
 
-    return data || [];
+    return (data || []).map(mapDbBudgetCategoryToType);
   } catch (error) {
     console.error("Error fetching budget categories:", error);
     return [];
@@ -194,7 +213,7 @@ export const getBudgetCategoryById = async (id: string): Promise<BudgetCategory 
       throw error;
     }
 
-    return data;
+    return data ? mapDbBudgetCategoryToType(data) : null;
   } catch (error) {
     console.error("Error fetching budget category:", error);
     return null;
@@ -223,7 +242,8 @@ export const createBudgetCategory = async (budgetCategory: BudgetCategory): Prom
   try {
     // Convert the amount to a number
     const categoryToCreate = {
-      ...budgetCategory,
+      budget_id: budgetCategory.budgetId,
+      category_id: budgetCategory.categoryId,
       amount: Number(budgetCategory.amount)
     };
 
@@ -237,7 +257,7 @@ export const createBudgetCategory = async (budgetCategory: BudgetCategory): Prom
       throw error;
     }
 
-    return data;
+    return data ? mapDbBudgetCategoryToType(data) : null;
   } catch (error) {
     console.error("Error creating budget category:", error);
     return null;
@@ -248,13 +268,12 @@ export const updateBudgetCategory = async (budgetCategory: BudgetCategory): Prom
   try {
     // Convert amount to a number
     const categoryToUpdate = {
-      ...budgetCategory,
       amount: Number(budgetCategory.amount)
     };
 
     const { data, error } = await supabase
       .from("budget_categories")
-      .update({ amount: categoryToUpdate.amount })
+      .update(categoryToUpdate)
       .eq("id", budgetCategory.id)
       .select()
       .single();
@@ -263,7 +282,7 @@ export const updateBudgetCategory = async (budgetCategory: BudgetCategory): Prom
       throw error;
     }
 
-    return data;
+    return data ? mapDbBudgetCategoryToType(data) : null;
   } catch (error) {
     console.error("Error updating budget category:", error);
     return null;

@@ -1,6 +1,7 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { SavingGoal } from "@/utils/types";
-import { getUserId } from "./utils/serviceUtils";
+import { getUserId, mapDbSavingGoalToType } from "./utils/serviceUtils";
 
 export const getAllSavingGoals = async (): Promise<SavingGoal[]> => {
   try {
@@ -20,7 +21,7 @@ export const getAllSavingGoals = async (): Promise<SavingGoal[]> => {
       throw error;
     }
 
-    return data || [];
+    return (data || []).map(mapDbSavingGoalToType);
   } catch (error) {
     console.error("Error fetching saving goals:", error);
     return [];
@@ -46,14 +47,14 @@ export const getSavingGoalById = async (id: string): Promise<SavingGoal | null> 
       throw error;
     }
 
-    return data;
+    return data ? mapDbSavingGoalToType(data) : null;
   } catch (error) {
     console.error("Error fetching saving goal:", error);
     return null;
   }
 };
 
-export const createSavingGoal = async (goal: SavingGoal): Promise<SavingGoal | null> => {
+export const createSavingGoal = async (goal: Omit<SavingGoal, "id">): Promise<SavingGoal | null> => {
   try {
     const userId = await getUserId();
 
@@ -65,8 +66,8 @@ export const createSavingGoal = async (goal: SavingGoal): Promise<SavingGoal | n
     const goalToCreate = {
       user_id: userId,
       name: goal.name,
-      target_amount: Number(goal.target_amount),
-      current_amount: Number(goal.current_amount || 0),
+      target_amount: Number(goal.targetAmount),
+      current_amount: Number(goal.currentAmount || 0),
       deadline: goal.deadline,
     };
 
@@ -80,14 +81,14 @@ export const createSavingGoal = async (goal: SavingGoal): Promise<SavingGoal | n
       throw error;
     }
 
-    return data;
+    return data ? mapDbSavingGoalToType(data) : null;
   } catch (error) {
     console.error("Error creating saving goal:", error);
     return null;
   }
 };
 
-export const updateSavingGoal = async (goal: SavingGoal): Promise<SavingGoal | null> => {
+export const updateSavingGoal = async (id: string, newAmount: number): Promise<SavingGoal | null> => {
   try {
     const userId = await getUserId();
 
@@ -95,18 +96,10 @@ export const updateSavingGoal = async (goal: SavingGoal): Promise<SavingGoal | n
       throw new Error("User not authenticated");
     }
 
-    // Make sure target_amount and current_amount are numbers
-    const goalToUpdate = {
-      name: goal.name,
-      target_amount: Number(goal.target_amount),
-      current_amount: Number(goal.current_amount),
-      deadline: goal.deadline,
-    };
-
     const { data, error } = await supabase
       .from("saving_goals")
-      .update(goalToUpdate)
-      .eq("id", goal.id)
+      .update({ current_amount: newAmount })
+      .eq("id", id)
       .eq("user_id", userId)
       .select()
       .single();
@@ -115,7 +108,7 @@ export const updateSavingGoal = async (goal: SavingGoal): Promise<SavingGoal | n
       throw error;
     }
 
-    return data;
+    return data ? mapDbSavingGoalToType(data) : null;
   } catch (error) {
     console.error("Error updating saving goal:", error);
     return null;

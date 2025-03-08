@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { Budget, BudgetCategory, SavingGoal } from "@/utils/types";
 
 export const getUserId = async (): Promise<string | null> => {
   try {
@@ -37,4 +38,35 @@ export const formatCurrency = (amount: number, currency = "INR"): string => {
     currency,
     maximumFractionDigits: 0
   }).format(amount);
+};
+
+export const mapDbBudgetToType = (dbBudget: any): Budget => {
+  return {
+    id: dbBudget.id,
+    month: dbBudget.month,
+    year: dbBudget.year,
+    totalBudget: dbBudget.total_budget,
+    categories: Array.isArray(dbBudget.budget_categories) 
+      ? dbBudget.budget_categories.map(mapDbBudgetCategoryToType) 
+      : []
+  };
+};
+
+export const mapDbBudgetCategoryToType = (dbCategory: any): BudgetCategory => {
+  return {
+    id: dbCategory.id,
+    categoryId: dbCategory.category_id,
+    amount: dbCategory.amount,
+    spent: 0 // Default value as it might not be in the database
+  };
+};
+
+export const mapDbSavingGoalToType = (dbGoal: any): SavingGoal => {
+  return {
+    id: dbGoal.id,
+    name: dbGoal.name,
+    targetAmount: dbGoal.target_amount,
+    currentAmount: dbGoal.current_amount,
+    deadline: dbGoal.deadline
+  };
 };

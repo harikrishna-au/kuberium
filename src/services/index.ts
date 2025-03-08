@@ -1,8 +1,19 @@
 
 // Re-export all service functions for easy importing
 import { generateExpenseSummary, fetchExpenses, addExpense, deleteExpense } from "./expenseService";
-import { createBudget, updateBudget } from "./budgetService";
-import { createSavingGoal, updateSavingGoal, deleteSavingGoal, getAllSavingGoals } from "./savingGoalService";
+import { 
+  createBudget, 
+  updateBudget, 
+  getBudgetByMonthYear as fetchBudgets,
+  getAllBudgets,
+  getBudgetById
+} from "./budgetService";
+import { 
+  createSavingGoal, 
+  updateSavingGoal, 
+  deleteSavingGoal, 
+  getAllSavingGoals 
+} from "./savingGoalService";
 import { fetchFinancialInsights } from "./insightService";
 import { getAIResponse } from "./aiAssistantService";
 import { getUserSettings, updateUserSettings, getUserProfile, updateUserProfile } from "./userService";
@@ -19,6 +30,9 @@ export {
   // Budget related exports
   createBudget,
   updateBudget,
+  fetchBudgets,
+  getAllBudgets,
+  getBudgetById,
   
   // Saving goals related exports
   createSavingGoal,

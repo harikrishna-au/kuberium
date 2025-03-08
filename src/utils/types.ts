@@ -30,6 +30,7 @@ export interface BudgetCategory {
   categoryId: string;
   amount: number;
   spent: number;
+  budgetId?: string; // Added budgetId property
 }
 
 export interface Budget {
