@@ -1,8 +1,9 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Bot, Send, User, X, MinusCircle } from "lucide-react";
+import { Bot, Send, User, X, MinusCircle, Brain } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { getAIResponse, AssistantMessage } from "@/services/aiAssistantService";
@@ -19,7 +20,7 @@ const AIFinancialAssistant = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Hello! I'm your financial assistant. How can I help you today?",
+      content: "Hello! I'm your Kuberium AI assistant. How can I help you today?",
       timestamp: new Date(),
     },
   ]);
@@ -102,21 +103,21 @@ const AIFinancialAssistant = () => {
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button 
-            className="h-12 w-12 rounded-full bg-primary hover:bg-primary/90"
+            className="h-12 w-12 rounded-full bg-primary hover:bg-primary/90 shadow-lg transition-all duration-300 hover:scale-105"
             aria-label="Open financial assistant"
           >
-            <Bot className="h-5 w-5" />
+            <Brain className="h-5 w-5" />
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-          className="w-80 sm:w-96 p-0 h-[70vh] max-h-[500px] flex flex-col"
+          className="w-80 sm:w-96 p-0 h-[70vh] max-h-[500px] flex flex-col shadow-xl border-0 animate-in fade-in-50 zoom-in-95"
           align="end"
         >
           <Card className="border-0 flex-1 flex flex-col h-full">
-            <CardHeader className="py-3 px-4 border-b flex flex-row items-center justify-between">
+            <CardHeader className="py-3 px-4 border-b flex flex-row items-center justify-between bg-primary/5">
               <CardTitle className="text-lg flex items-center gap-2">
-                <Bot className="h-5 w-5" />
-                Financial Assistant
+                <Brain className="h-5 w-5" />
+                Kuberium Assistant
               </CardTitle>
               <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
                 <MinusCircle className="h-4 w-4" />
@@ -128,7 +129,7 @@ const AIFinancialAssistant = () => {
                   key={index}
                   className={`flex gap-2 ${
                     message.role === "assistant" ? "flex-row" : "flex-row-reverse"
-                  }`}
+                  } animate-in slide-in-from-bottom-3`}
                 >
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-white ${
@@ -136,13 +137,13 @@ const AIFinancialAssistant = () => {
                     }`}
                   >
                     {message.role === "assistant" ? (
-                      <Bot className="h-4 w-4" />
+                      <Brain className="h-4 w-4" />
                     ) : (
                       <User className="h-4 w-4" />
                     )}
                   </div>
                   <div
-                    className={`rounded-lg py-2 px-3 max-w-[75%] ${
+                    className={`rounded-lg py-2 px-3 max-w-[75%] shadow-sm ${
                       message.role === "assistant"
                         ? "bg-muted text-foreground"
                         : "bg-primary text-primary-foreground"
@@ -163,13 +164,14 @@ const AIFinancialAssistant = () => {
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={handleKeyPress}
                   disabled={isLoading}
-                  className="flex-1"
+                  className="flex-1 focus:ring-2 focus:ring-primary transition-all duration-300"
                 />
                 <Button 
                   type="submit" 
                   size="icon"
                   disabled={isLoading || !inputValue.trim()}
                   onClick={handleSendMessage}
+                  className="transition-all duration-300 hover:scale-105"
                 >
                   <Send className="h-4 w-4" />
                 </Button>

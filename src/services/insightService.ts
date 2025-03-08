@@ -2,20 +2,20 @@
 import { supabase } from "@/integrations/supabase/client";
 import { FinancialInsight } from "@/utils/types";
 import { toast } from "sonner";
-import { getCurrentUser } from "./utils/serviceUtils";
+import { getUserId } from "./utils/serviceUtils";
 
 // Renamed to match the export in index.ts
 export const fetchFinancialInsights = async (): Promise<FinancialInsight[]> => {
-  const userData = await getCurrentUser();
+  const userId = await getUserId();
   
-  if (!userData) {
+  if (!userId) {
     return [];
   }
   
   const { data, error } = await supabase
     .from("financial_insights")
     .select("*")
-    .eq("user_id", userData.id)
+    .eq("user_id", userId)
     .order("date", { ascending: false });
     
   if (error) {

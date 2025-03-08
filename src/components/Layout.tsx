@@ -3,7 +3,10 @@ import React, { useState } from "react";
 import Navbar from "@/components/Navbar";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Home, BarChart3, Wallet, Target, BellRing, Settings, X, BarChartHorizontal, LogOut } from "lucide-react";
+import { 
+  Home, BarChart3, Wallet, Target, BellRing, Settings, X, 
+  Brain, LogOut, Coins, FileSpreadsheet, HandHeart, UsersRound
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
@@ -75,9 +78,9 @@ const Layout = ({ children }: LayoutProps) => {
             
             <div className="flex items-center gap-2 px-2 mb-6">
               <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center text-primary-foreground">
-                <BarChartHorizontal className="h-5 w-5" />
+                <Brain className="h-5 w-5" />
               </div>
-              <span className="text-lg font-semibold">FinAI</span>
+              <span className="text-lg font-semibold">Kuberium</span>
             </div>
             
             <div className="space-y-1">
@@ -86,6 +89,13 @@ const Layout = ({ children }: LayoutProps) => {
                 label="Dashboard" 
                 to="/" 
                 active={location.pathname === "/"} 
+                onClick={() => isMobile && setSidebarOpen(false)}
+              />
+              <SidebarItem 
+                icon={<Coins />} 
+                label="Investments" 
+                to="/investments" 
+                active={location.pathname === "/investments"} 
                 onClick={() => isMobile && setSidebarOpen(false)}
               />
               <SidebarItem 
@@ -110,6 +120,27 @@ const Layout = ({ children }: LayoutProps) => {
                 onClick={() => isMobile && setSidebarOpen(false)}
               />
               <SidebarItem 
+                icon={<FileSpreadsheet />} 
+                label="Tax Optimization" 
+                to="/tax-optimization" 
+                active={location.pathname === "/tax-optimization"} 
+                onClick={() => isMobile && setSidebarOpen(false)}
+              />
+              <SidebarItem 
+                icon={<HandHeart />} 
+                label="Financial Habits" 
+                to="/financial-habits" 
+                active={location.pathname === "/financial-habits"} 
+                onClick={() => isMobile && setSidebarOpen(false)}
+              />
+              <SidebarItem 
+                icon={<UsersRound />} 
+                label="Human Advisors" 
+                to="/advisors" 
+                active={location.pathname === "/advisors"} 
+                onClick={() => isMobile && setSidebarOpen(false)}
+              />
+              <SidebarItem 
                 icon={<BellRing />} 
                 label="Notifications" 
                 to="/notifications" 
@@ -128,7 +159,7 @@ const Layout = ({ children }: LayoutProps) => {
             <div className="mt-6 p-4 bg-primary/10 rounded-lg">
               <h3 className="font-medium text-sm">Pro Tip 💡</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                Connect your bank account for automatic transaction import
+                Connect your bank account for automated insights and smart wealth optimization
               </p>
               <Button size="sm" variant="outline" className="mt-3 w-full">
                 Connect Bank

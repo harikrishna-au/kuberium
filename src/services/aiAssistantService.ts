@@ -22,14 +22,14 @@ export const getAIResponse = async (
 
     if (error) {
       console.error("Error calling AI assistant:", error);
-      toast.error("Failed to get response from AI assistant");
+      toast.error("Failed to get response from Kuberium AI assistant");
       throw error;
     }
 
-    return data.response || "I'm sorry, I couldn't process your request.";
+    return data.response || "I'm sorry, I couldn't process your request. Please try again later.";
   } catch (error) {
     console.error("Error in AI assistant service:", error);
-    toast.error("Error communicating with AI assistant");
+    toast.error("Error communicating with Kuberium AI assistant");
     throw error;
   }
 };

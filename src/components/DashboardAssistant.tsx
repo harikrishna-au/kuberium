@@ -1,8 +1,13 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Bot, Send, User, Sparkles, X, MinimizeIcon, MaximizeIcon, MessageSquareDot, PiggyBank, Target, CreditCard } from "lucide-react";
+import { 
+  Bot, Send, User, Sparkles, X, MinimizeIcon, MaximizeIcon, 
+  Brain, Target, CreditCard, PiggyBank, TrendingUp, 
+  Coins, FileSpreadsheet, HandHeart, Users, UserCheck 
+} from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -18,7 +23,7 @@ const DashboardAssistant = () => {
   const [messages, setMessages] = useState<AssistantMessage[]>([
     {
       role: "assistant",
-      content: "Hi there! I'm your AI finance assistant. I can help you create budgets, set saving goals, and analyze your finances. What would you like help with today?",
+      content: "Hi there! I'm your Kuberium AI finance assistant. I can help you create budgets, set saving goals, optimize investments, and analyze your finances with AI-powered insights. What would you like help with today?",
       timestamp: new Date(),
     },
   ]);
@@ -30,11 +35,11 @@ const DashboardAssistant = () => {
 
   // Sample suggestions for the user
   const suggestions = [
+    "Analyze my spending patterns",
+    "Create an investment plan",
+    "Optimize my salary structure",
     "Create a budget for this month",
-    "Help me save for a vacation",
-    "Analyze my spending habits",
-    "Plan for retirement",
-    "Reduce my expenses"
+    "Suggest wealth optimization strategies"
   ];
 
   useEffect(() => {
@@ -109,16 +114,18 @@ const DashboardAssistant = () => {
     const lowerInput = userInput.toLowerCase();
     let response = "";
 
-    if (lowerInput.includes("budget")) {
-      response = "I can help you create a budget! Based on your income and current expenses, I recommend allocating 50% for essentials, 30% for discretionary spending, and 20% for savings. Would you like me to set up a budget plan for you?";
+    if (lowerInput.includes("invest") || lowerInput.includes("portfolio") || lowerInput.includes("stock")) {
+      response = "Based on your risk profile and goals, I recommend a balanced portfolio with 40% in index funds, 30% in blue-chip stocks, and 30% in government bonds. Our AI analysis suggests this allocation could yield approximately 12% annual returns. Would you like me to create a detailed investment plan?";
+    } else if (lowerInput.includes("budget") || lowerInput.includes("expense")) {
+      response = "I've analyzed your spending patterns and created a personalized budget. Based on your income and current expenses, I recommend allocating 50% for essentials, 30% for discretionary spending, and 20% for savings. Would you like me to set up automated tracking for this budget?";
+    } else if (lowerInput.includes("salary") || lowerInput.includes("tax") || lowerInput.includes("esop")) {
+      response = "I've analyzed your salary structure and found potential tax optimizations. By restructuring your HRA and LTA components and optimizing your ESOP exercise schedule, you could save approximately ₹45,000 in taxes annually. Should I generate a detailed optimization report?";
     } else if (lowerInput.includes("save") || lowerInput.includes("saving") || lowerInput.includes("goal")) {
-      response = "Great! Setting saving goals is a smart financial move. Based on your current finances, you could save about ₹15,000 per month. For a vacation that costs ₹180,000, you could reach your goal in 12 months. Should I create this saving goal for you?";
-    } else if (lowerInput.includes("spend") || lowerInput.includes("expense") || lowerInput.includes("analyze")) {
-      response = "Looking at your spending patterns, I notice that you spend most on dining out (25%) and entertainment (15%). You could save approximately ₹8,000 monthly by reducing these expenses by just 20%. Would you like some specific recommendations?";
-    } else if (lowerInput.includes("retire") || lowerInput.includes("investment")) {
-      response = "For retirement planning, I recommend starting with a goal of saving 15% of your income. Based on your current age and income, you should aim for a retirement corpus of approximately ₹2.5 crores. Would you like me to suggest an investment strategy?";
+      response = "Great! Setting saving goals is a smart financial move. Based on your current finances, you could save about ₹15,000 per month. For a vacation that costs ₹180,000, you could reach your goal in 12 months. Should I create this saving goal with automated reminders?";
+    } else if (lowerInput.includes("spend") || lowerInput.includes("analyze")) {
+      response = "Looking at your spending patterns, I notice that you spend most on dining out (25%) and entertainment (15%). You could save approximately ₹8,000 monthly by reducing these expenses by just 20%. Would you like some specific recommendations based on behavioral finance principles?";
     } else {
-      response = "I can help you manage your finances better! I can create budgets, set saving goals, analyze spending patterns, or plan for long-term financial goals. What specific area would you like assistance with?";
+      response = "I can help you manage your finances better with AI-powered insights! I can create budgets, set saving goals, optimize investments, analyze spending patterns, or plan for long-term financial goals. What specific area would you like assistance with?";
     }
 
     const assistantMessage: AssistantMessage = {
@@ -186,14 +193,14 @@ const DashboardAssistant = () => {
       <CardHeader className="bg-primary/5 p-4 flex flex-row items-center justify-between space-y-0">
         <CardTitle className="text-xl flex items-center gap-2">
           <Bot className="h-5 w-5" />
-          <span>FinAI Assistant</span>
+          <span>Kuberium Assistant</span>
           <div className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-full flex items-center">
             <Sparkles className="h-3 w-3 mr-1" />
-            <span>Smart</span>
+            <span>AI-Powered</span>
           </div>
         </CardTitle>
         <div className="flex gap-1">
-          <Button variant="ghost" size="icon" onClick={toggleExpanded} className="h-8 w-8 transition-transform hover:rotate-180 duration-300">
+          <Button variant="ghost" size="icon" onClick={toggleExpanded} className="h-8 w-8 transition-transform duration-300">
             {isExpanded ? <MinimizeIcon className="h-4 w-4" /> : <MaximizeIcon className="h-4 w-4" />}
           </Button>
           <Button variant="ghost" size="icon" onClick={toggleMinimized} className="h-8 w-8 transition-transform hover:scale-110 duration-300">
@@ -251,7 +258,7 @@ const DashboardAssistant = () => {
           <div className="flex items-center justify-center mt-4 animate-pulse">
             <div className="flex gap-2 items-center bg-primary/10 px-4 py-2 rounded-md">
               <div className="h-2 w-2 bg-primary rounded-full animate-ping"></div>
-              <span className="text-sm">FinAI is thinking...</span>
+              <span className="text-sm">Kuberium AI is thinking...</span>
             </div>
           </div>
         )}
@@ -298,19 +305,39 @@ const DashboardAssistant = () => {
       
       {isExpanded && (
         <div className="p-4 bg-primary/5 border-t animate-fadeIn">
-          <h4 className="font-medium text-sm mb-2">What I can help you with:</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <h4 className="font-medium text-sm mb-2">Kuberium AI-Powered Features:</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
             <div className="flex items-center gap-2 bg-background p-2 rounded-md shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
-              <CreditCard className="h-5 w-5 text-primary" />
-              <span className="text-sm">Budget Planning</span>
+              <Brain className="h-5 w-5 text-primary" />
+              <span className="text-sm">Financial Insights</span>
+            </div>
+            <div className="flex items-center gap-2 bg-background p-2 rounded-md shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
+              <Coins className="h-5 w-5 text-primary" />
+              <span className="text-sm">Investment Planning</span>
+            </div>
+            <div className="flex items-center gap-2 bg-background p-2 rounded-md shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
+              <FileSpreadsheet className="h-5 w-5 text-primary" />
+              <span className="text-sm">Wealth Optimization</span>
+            </div>
+            <div className="flex items-center gap-2 bg-background p-2 rounded-md shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
+              <HandHeart className="h-5 w-5 text-primary" />
+              <span className="text-sm">Behavioral Finance</span>
             </div>
             <div className="flex items-center gap-2 bg-background p-2 rounded-md shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
               <PiggyBank className="h-5 w-5 text-primary" />
-              <span className="text-sm">Saving Strategies</span>
+              <span className="text-sm">Automated Budgeting</span>
+            </div>
+            <div className="flex items-center gap-2 bg-background p-2 rounded-md shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              <span className="text-sm">Predictive Analytics</span>
             </div>
             <div className="flex items-center gap-2 bg-background p-2 rounded-md shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
               <Target className="h-5 w-5 text-primary" />
-              <span className="text-sm">Financial Goals</span>
+              <span className="text-sm">Smart Goals</span>
+            </div>
+            <div className="flex items-center gap-2 bg-background p-2 rounded-md shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
+              <Users className="h-5 w-5 text-primary" />
+              <span className="text-sm">Human Advisors</span>
             </div>
           </div>
         </div>

@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Bell, User, Menu, BarChartHorizontal } from "lucide-react";
+import { Bell, User, Menu, BarChartHorizontal, Brain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -32,9 +32,9 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
         {isMobile && (
           <div className="flex items-center space-x-2">
             <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center text-primary-foreground">
-              <BarChartHorizontal className="h-5 w-5" />
+              <Brain className="h-5 w-5" />
             </div>
-            <span className="text-lg font-semibold text-primary">FinAI</span>
+            <span className="text-lg font-semibold text-primary">Kuberium</span>
           </div>
         )}
 
