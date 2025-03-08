@@ -4,10 +4,18 @@ import { generateExpenseSummary, fetchExpenses, addExpense, deleteExpense } from
 import { 
   createBudget, 
   updateBudget, 
-  getBudgetByMonthYear as fetchBudgets,
+  getBudgetByMonthYear,
   getAllBudgets,
-  getBudgetById
+  getBudgetById,
+  deleteBudget
 } from "./budgetService";
+import {
+  getAllBudgetCategories,
+  getBudgetCategoryById,
+  createBudgetCategory,
+  updateBudgetCategory,
+  deleteBudgetCategory
+} from "./budgetCategoryService";
 import { 
   createSavingGoal, 
   updateSavingGoal, 
@@ -30,9 +38,17 @@ export {
   // Budget related exports
   createBudget,
   updateBudget,
-  fetchBudgets,
+  deleteBudget,
+  getBudgetByMonthYear as fetchBudgets,
   getAllBudgets,
   getBudgetById,
+  
+  // Budget category related exports
+  getAllBudgetCategories,
+  getBudgetCategoryById,
+  createBudgetCategory,
+  updateBudgetCategory,
+  deleteBudgetCategory,
   
   // Saving goals related exports
   createSavingGoal,
