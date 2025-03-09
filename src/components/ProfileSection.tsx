@@ -11,30 +11,20 @@ interface ProfileSectionProps {
 const ProfileSection = ({ handleSignOut }: ProfileSectionProps) => {
   const { user } = useAuth();
   
-  // Get user initials for avatar
-  const getUserInitials = () => {
-    if (!user?.email) return "U";
-    
-    const email = user.email;
-    const parts = email.split("@")[0].split(/[._-]/);
-    
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-    
-    return email.substring(0, 2).toUpperCase();
-  };
-  
   return (
     <div className="mt-auto">
       <div className="p-4 bg-muted rounded-lg">
         <div className="flex items-center">
           <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center">
-            <span className="text-sm font-medium">{getUserInitials()}</span>
+            <img 
+              src="/lovable-uploads/f1144fd4-09d9-4f54-a4b8-cf5ca0f8dba3.png" 
+              alt="Profile" 
+              className="h-8 w-8 rounded-full"
+            />
           </div>
           <div className="ml-3">
-            <p className="text-sm font-medium">{user?.email}</p>
-            <p className="text-xs text-muted-foreground">Free Plan</p>
+            <p className="text-sm font-medium">Hari Krishna</p>
+            <p className="text-xs text-muted-foreground">{user?.email || 'Premium Plan'}</p>
           </div>
         </div>
         <div className="mt-3 flex space-x-2">

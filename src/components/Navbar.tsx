@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Bell, User, Menu, BarChartHorizontal, Brain } from "lucide-react";
+import { Bell, User, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,7 +11,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { currentUser } from "@/utils/mockData";
 
 interface NavbarProps {
   onToggleSidebar?: () => void;
@@ -31,9 +30,11 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
 
         {isMobile && (
           <div className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center text-primary-foreground">
-              <Brain className="h-5 w-5" />
-            </div>
+            <img 
+              src="/lovable-uploads/f1144fd4-09d9-4f54-a4b8-cf5ca0f8dba3.png" 
+              alt="Kuberium Logo" 
+              className="h-8 w-8 rounded-full" 
+            />
             <span className="text-lg font-semibold text-primary">Kuberium</span>
           </div>
         )}
@@ -86,7 +87,7 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
                 <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center">
                   <User className="h-5 w-5" />
                 </div>
-                <span className="hidden md:inline-block font-medium">{currentUser.name}</span>
+                <span className="hidden md:inline-block font-medium">Hari Krishna</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
