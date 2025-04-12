@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -15,7 +14,6 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [userRole, setUserRole] = useState("user");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,11 +36,6 @@ const Auth = () => {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: {
-            role: userRole
-          }
-        }
       });
       
       if (error) {
@@ -91,7 +84,7 @@ const Auth = () => {
               <BarChartHorizontal className="h-8 w-8" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold">Kuberium</CardTitle>
+          <CardTitle className="text-2xl font-bold">FinAI</CardTitle>
           <CardDescription>
             Manage your finances with ease
           </CardDescription>
@@ -167,20 +160,6 @@ const Auth = () => {
                   <p className="text-xs text-muted-foreground">
                     Password must be at least 6 characters
                   </p>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>I am a:</Label>
-                  <RadioGroup value={userRole} onValueChange={setUserRole} className="flex gap-4">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="user" id="user" />
-                      <Label htmlFor="user">User</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="expert" id="expert" />
-                      <Label htmlFor="expert">Expert</Label>
-                    </div>
-                  </RadioGroup>
                 </div>
               </CardContent>
               <CardFooter>

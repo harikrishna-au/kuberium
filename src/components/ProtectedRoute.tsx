@@ -5,34 +5,17 @@ import { useAuth } from "@/components/AuthProvider";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  expertOnly?: boolean;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, expertOnly = false }) => {
-  const { user, userRole, loading } = useAuth();
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading) {
-      // Redirect to auth if not logged in
-      if (!user) {
-        navigate("/auth");
-        return;
-      }
-      
-      // Handle role-based redirects
-      if (expertOnly && userRole !== 'expert') {
-        navigate("/");
-        return;
-      }
-      
-      // If normal user tries to access expert routes
-      if (!expertOnly && userRole === 'expert' && window.location.pathname.indexOf('/expert') !== 0) {
-        navigate("/expert/feed");
-        return;
-      }
+    if (!loading && !user) {
+      navigate("/auth");
     }
-  }, [user, userRole, loading, navigate, expertOnly]);
+  }, [user, loading, navigate]);
 
   if (loading) {
     return (
@@ -41,11 +24,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, expertOnly = 
       </div>
     );
   }
-  
-  if (!user) return null;
-  
-  // Simply return children without wrapping in layouts
-  return <>{children}</>;
+
+  return user ? <>{children}</> : null;
 };
 
 export default ProtectedRoute;

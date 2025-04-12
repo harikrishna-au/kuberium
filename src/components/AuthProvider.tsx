@@ -6,7 +6,6 @@ import { Session, User } from "@supabase/supabase-js";
 interface AuthContextProps {
   session: Session | null;
   user: User | null;
-  userRole: string | null;
   loading: boolean;
   signOut: () => Promise<void>;
 }
@@ -14,7 +13,6 @@ interface AuthContextProps {
 const AuthContext = createContext<AuthContextProps>({
   session: null,
   user: null,
-  userRole: null,
   loading: true,
   signOut: async () => {},
 });
@@ -24,7 +22,6 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,7 +29,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      setUserRole(session?.user?.user_metadata?.role ?? 'user');
       setLoading(false);
     });
 
@@ -41,7 +37,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        setUserRole(session?.user?.user_metadata?.role ?? 'user');
         setLoading(false);
       }
     );
@@ -56,7 +51,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value = {
     session,
     user,
-    userRole,
     loading,
     signOut,
   };
