@@ -2,8 +2,6 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
-import Layout from "@/components/Layout";
-import ExpertLayout from "@/components/ExpertLayout";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -46,12 +44,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, expertOnly = 
   
   if (!user) return null;
   
-  // Render with appropriate layout based on user role
-  if (userRole === 'expert') {
-    return <ExpertLayout>{children}</ExpertLayout>;
-  }
-  
-  return <Layout>{children}</Layout>;
+  // Simply return children without wrapping in layouts
+  return <>{children}</>;
 };
 
 export default ProtectedRoute;
