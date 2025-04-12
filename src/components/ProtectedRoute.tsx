@@ -2,20 +2,39 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
+import Layout from "@/components/Layout";
+import ExpertLayout from "@/components/ExpertLayout";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  expertOnly?: boolean;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, loading } = useAuth();
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, expertOnly = false }) => {
+  const { user, userRole, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate("/auth");
+    if (!loading) {
+      // Redirect to auth if not logged in
+      if (!user) {
+        navigate("/auth");
+        return;
+      }
+      
+      // Handle role-based redirects
+      if (expertOnly && userRole !== 'expert') {
+        navigate("/");
+        return;
+      }
+      
+      // If normal user tries to access expert routes
+      if (!expertOnly && userRole === 'expert' && window.location.pathname.indexOf('/expert') !== 0) {
+        navigate("/expert/feed");
+        return;
+      }
     }
-  }, [user, loading, navigate]);
+  }, [user, userRole, loading, navigate, expertOnly]);
 
   if (loading) {
     return (
@@ -24,8 +43,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       </div>
     );
   }
-
-  return user ? <>{children}</> : null;
+  
+  if (!user) return null;
+  
+  // Render with appropriate layout based on user role
+  if (userRole === 'expert') {
+    return <ExpertLayout>{children}</ExpertLayout>;
+  }
+  
+  return <Layout>{children}</Layout>;
 };
 
 export default ProtectedRoute;

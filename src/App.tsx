@@ -20,6 +20,12 @@ import TaxOptimization from "./pages/TaxOptimization";
 import FinancialHabits from "./pages/FinancialHabits";
 import Advisors from "./pages/Advisors";
 
+// Expert pages
+import ExpertFeed from "./pages/expert/Feed";
+import ExpertClients from "./pages/expert/Clients";
+import ExpertMessages from "./pages/expert/Messages";
+import ExpertProfile from "./pages/expert/Profile";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -31,6 +37,8 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            
+            {/* User Routes */}
             <Route path="/" element={<ProtectedRoute><Layout><Index /></Layout></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><Layout><Analytics /></Layout></ProtectedRoute>} />
             <Route path="/budgets" element={<ProtectedRoute><Layout><Budgets /></Layout></ProtectedRoute>} />
@@ -41,7 +49,14 @@ const App = () => (
             <Route path="/advisors" element={<ProtectedRoute><Layout><Advisors /></Layout></ProtectedRoute>} />
             <Route path="/notifications" element={<ProtectedRoute><Layout><Notifications /></Layout></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            
+            {/* Expert Routes */}
+            <Route path="/expert/feed" element={<ProtectedRoute expertOnly={true}><ExpertFeed /></ProtectedRoute>} />
+            <Route path="/expert/clients" element={<ProtectedRoute expertOnly={true}><ExpertClients /></ProtectedRoute>} />
+            <Route path="/expert/messages" element={<ProtectedRoute expertOnly={true}><ExpertMessages /></ProtectedRoute>} />
+            <Route path="/expert/profile" element={<ProtectedRoute expertOnly={true}><ExpertProfile /></ProtectedRoute>} />
+            
+            {/* 404 Route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
