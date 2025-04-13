@@ -37,7 +37,7 @@ let authToken = '';  // Declare the authToken variable
 
 const login = async () => {
   try {
-    const response = await fetch('http://172.168.30.49:3001/api/users/login', {
+    const response = await fetch('https://sus-server.onrender.com/api/users/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -74,7 +74,7 @@ export const postService = {
       }
 
       const response = await fetch(
-        `http://172.168.30.49:3001/api/posts?limit=${limit}&startAfter=${startAfter}`,
+        `https://sus-server.onrender.com/api/posts?limit=${limit}&startAfter=${startAfter}`,
         {
           headers: {
             'Accept': 'application/json',
