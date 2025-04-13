@@ -2,7 +2,8 @@
 import React from "react";
 import { 
   Home, BarChart3, Wallet, Target, BellRing, Settings,
-  Brain, Coins, FileSpreadsheet, HandHeart, UsersRound
+  Brain, Coins, FileSpreadsheet, HandHeart, UsersRound,
+  Newspaper, Bot
 } from "lucide-react";
 import { Location } from "react-router-dom";
 import SidebarItem from "@/components/SidebarItem";
@@ -21,10 +22,16 @@ const SidebarItems = ({ location, closeSidebar }: SidebarItemsProps) => {
       active: location.pathname === "/"
     },
     {
-      icon: <Coins />,
-      label: "Investments",
-      to: "/investments",
-      active: location.pathname === "/investments"
+      icon: <Newspaper />,
+      label: "Feed",
+      to: "/feed",
+      active: location.pathname === "/feed"
+    },
+    {
+      icon: <Bot />,
+      label: "Kuberium AI",
+      to: "/ai",
+      active: location.pathname === "/ai"
     },
     {
       icon: <BarChart3 />,
@@ -32,23 +39,12 @@ const SidebarItems = ({ location, closeSidebar }: SidebarItemsProps) => {
       to: "/analytics",
       active: location.pathname === "/analytics"
     },
-    {
-      icon: <Wallet />,
-      label: "Budgets",
-      to: "/budgets",
-      active: location.pathname === "/budgets"
-    },
+   
     {
       icon: <Target />,
       label: "Goals",
       to: "/goals",
       active: location.pathname === "/goals"
-    },
-    {
-      icon: <FileSpreadsheet />,
-      label: "Tax Optimization",
-      to: "/tax-optimization",
-      active: location.pathname === "/tax-optimization"
     },
     {
       icon: <HandHeart />,

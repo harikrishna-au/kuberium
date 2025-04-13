@@ -84,7 +84,7 @@ const Auth = () => {
               <BarChartHorizontal className="h-8 w-8" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold">FinAI</CardTitle>
+          <CardTitle className="text-2xl font-bold">Kuberium</CardTitle>
           <CardDescription>
             Manage your finances with ease
           </CardDescription>

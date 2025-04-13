@@ -230,6 +230,39 @@ export type Database = {
         }
         Relationships: []
       }
+      posts: {
+        Row: {
+          post_id: string
+          created_at: string
+          expert_id: string
+          post_title: string | null
+          post_description: string | null
+          category: string
+          likes: number | null
+          hashtags: string | null
+        }
+        Insert: {
+          post_id?: string
+          created_at?: string
+          expert_id: string
+          post_title?: string | null
+          post_description?: string | null
+          category: string
+          likes?: number | null
+          hashtags?: string | null
+        }
+        Update: {
+          post_id?: string
+          created_at?: string
+          expert_id?: string
+          post_title?: string | null
+          post_description?: string | null
+          category?: string
+          likes?: number | null
+          hashtags?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

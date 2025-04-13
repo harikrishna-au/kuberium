@@ -19,35 +19,41 @@ import Investments from "./pages/Investments";
 import TaxOptimization from "./pages/TaxOptimization";
 import FinancialHabits from "./pages/FinancialHabits";
 import Advisors from "./pages/Advisors";
+import KuberiumAI from "./pages/KuberiumAI";
+import Feed from "./pages/Feed";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/" element={<ProtectedRoute><Layout><Index /></Layout></ProtectedRoute>} />
-            <Route path="/analytics" element={<ProtectedRoute><Layout><Analytics /></Layout></ProtectedRoute>} />
-            <Route path="/budgets" element={<ProtectedRoute><Layout><Budgets /></Layout></ProtectedRoute>} />
-            <Route path="/goals" element={<ProtectedRoute><Layout><Goals /></Layout></ProtectedRoute>} />
-            <Route path="/investments" element={<ProtectedRoute><Layout><Investments /></Layout></ProtectedRoute>} />
-            <Route path="/tax-optimization" element={<ProtectedRoute><Layout><TaxOptimization /></Layout></ProtectedRoute>} />
-            <Route path="/financial-habits" element={<ProtectedRoute><Layout><FinancialHabits /></Layout></ProtectedRoute>} />
-            <Route path="/advisors" element={<ProtectedRoute><Layout><Advisors /></Layout></ProtectedRoute>} />
-            <Route path="/notifications" element={<ProtectedRoute><Layout><Notifications /></Layout></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <AuthProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/" element={<ProtectedRoute><Layout><Index /></Layout></ProtectedRoute>} />
+              <Route path="/feed" element={<ProtectedRoute><Layout><Feed /></Layout></ProtectedRoute>} />
+              <Route path="/analytics" element={<ProtectedRoute><Layout><Analytics /></Layout></ProtectedRoute>} />
+              <Route path="/budgets" element={<ProtectedRoute><Layout><Budgets /></Layout></ProtectedRoute>} />
+              <Route path="/goals" element={<ProtectedRoute><Layout><Goals /></Layout></ProtectedRoute>} />
+              <Route path="/investments" element={<ProtectedRoute><Layout><Investments /></Layout></ProtectedRoute>} />
+              <Route path="/tax-optimization" element={<ProtectedRoute><Layout><TaxOptimization /></Layout></ProtectedRoute>} />
+              <Route path="/financial-habits" element={<ProtectedRoute><Layout><FinancialHabits /></Layout></ProtectedRoute>} />
+              <Route path="/advisors" element={<ProtectedRoute><Layout><Advisors /></Layout></ProtectedRoute>} />
+              <Route path="/notifications" element={<ProtectedRoute><Layout><Notifications /></Layout></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
+              <Route path="/ai" element={<ProtectedRoute><Layout><KuberiumAI /></Layout></ProtectedRoute>} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;

@@ -2,9 +2,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
-  Bot, Send, User, Sparkles, X, MinimizeIcon, MaximizeIcon, 
+  Bot, Send, User, Sparkles, ArrowRight,
   Brain, Target, CreditCard, PiggyBank, TrendingUp, 
   Coins, FileSpreadsheet, HandHeart, Users, UserCheck 
 } from "lucide-react";
@@ -17,9 +17,40 @@ type AssistantMessage = {
   timestamp: Date;
 };
 
+const quickRecommendations = [
+  {
+    icon: <Target className="h-4 w-4" />,
+    text: "Help me set financial goals",
+    prompt: "I want to set some financial goals. Can you help me create a plan?"
+  },
+  {
+    icon: <PiggyBank className="h-4 w-4" />,
+    text: "Create a savings strategy",
+    prompt: "I need help creating a savings strategy. What do you recommend?"
+  },
+  {
+    icon: <TrendingUp className="h-4 w-4" />,
+    text: "Investment advice",
+    prompt: "Can you give me investment recommendations based on my risk profile?"
+  },
+  {
+    icon: <CreditCard className="h-4 w-4" />,
+    text: "Analyze my spending",
+    prompt: "Can you analyze my spending patterns and suggest improvements?"
+  },
+  {
+    icon: <FileSpreadsheet className="h-4 w-4" />,
+    text: "Create a budget plan",
+    prompt: "I need help creating a monthly budget. Can you assist?"
+  },
+  {
+    icon: <Coins className="h-4 w-4" />,
+    text: "Tax optimization",
+    prompt: "How can I optimize my tax savings?"
+  }
+];
+
 const DashboardAssistant = () => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<AssistantMessage[]>([
     {
       role: "assistant",
@@ -29,62 +60,14 @@ const DashboardAssistant = () => {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [animationState, setAnimationState] = useState("initial");
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const assistantRef = useRef<HTMLDivElement>(null);
 
-  // Sample suggestions for the user
-  const suggestions = [
-    "Analyze my spending patterns",
-    "Create an investment plan",
-    "Optimize my salary structure",
-    "Create a budget for this month",
-    "Suggest wealth optimization strategies"
-  ];
-
+  // Scroll to bottom when messages change
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
-
-  useEffect(() => {
-    if (isExpanded && assistantRef.current) {
-      assistantRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [isExpanded]);
-
-  const toggleExpanded = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    setAnimationState("animating");
-    setTimeout(() => {
-      setIsExpanded(!isExpanded);
-      if (isMinimized) setIsMinimized(false);
-      
-      setTimeout(() => {
-        setAnimationState("completed");
-      }, 300);
-    }, 50);
-  };
-
-  const toggleMinimized = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    setAnimationState("animating");
-    setTimeout(() => {
-      setIsMinimized(!isMinimized);
-      if (!isMinimized) {
-        setIsExpanded(false);
-      }
-      
-      setTimeout(() => {
-        setAnimationState("completed");
-      }, 300);
-    }, 50);
-  };
 
   const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) {
@@ -104,57 +87,50 @@ const DashboardAssistant = () => {
     setInputValue("");
     setIsLoading(true);
 
-    setTimeout(() => {
-      generateResponse(inputValue);
+    try {
+      // Simplified payload matching the curl example
+      const payload = {
+        message: inputValue,
+        chat_history: [] // Empty array as shown in the curl example
+      };
+
+      console.log('Sending payload:', JSON.stringify(payload, null, 2));
+
+      const response = await fetch("https://180a-2409-40f0-410d-ed2e-b9ad-d122-9476-5e22.ngrok-free.app/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      const assistantMessage: AssistantMessage = {
+        role: "assistant",
+        content: data.response || "Sorry, I couldn't process your request.",
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error("Failed to get response from the assistant");
+      
+      const errorMessage: AssistantMessage = {
+        role: "assistant",
+        content: "Sorry, I encountered an error. Please try again later.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
-  };
-
-  const generateResponse = (userInput: string) => {
-    const lowerInput = userInput.toLowerCase();
-    let response = "";
-
-    if (lowerInput.includes("invest") || lowerInput.includes("portfolio") || lowerInput.includes("stock")) {
-      response = "Based on your risk profile and goals, I recommend a balanced portfolio with 40% in index funds, 30% in blue-chip stocks, and 30% in government bonds. Our AI analysis suggests this allocation could yield approximately 12% annual returns. Would you like me to create a detailed investment plan?";
-    } else if (lowerInput.includes("budget") || lowerInput.includes("expense")) {
-      response = "I've analyzed your spending patterns and created a personalized budget. Based on your income and current expenses, I recommend allocating 50% for essentials, 30% for discretionary spending, and 20% for savings. Would you like me to set up automated tracking for this budget?";
-    } else if (lowerInput.includes("salary") || lowerInput.includes("tax") || lowerInput.includes("esop")) {
-      response = "I've analyzed your salary structure and found potential tax optimizations. By restructuring your HRA and LTA components and optimizing your ESOP exercise schedule, you could save approximately ₹45,000 in taxes annually. Should I generate a detailed optimization report?";
-    } else if (lowerInput.includes("save") || lowerInput.includes("saving") || lowerInput.includes("goal")) {
-      response = "Great! Setting saving goals is a smart financial move. Based on your current finances, you could save about ₹15,000 per month. For a vacation that costs ₹180,000, you could reach your goal in 12 months. Should I create this saving goal with automated reminders?";
-    } else if (lowerInput.includes("spend") || lowerInput.includes("analyze")) {
-      response = "Looking at your spending patterns, I notice that you spend most on dining out (25%) and entertainment (15%). You could save approximately ₹8,000 monthly by reducing these expenses by just 20%. Would you like some specific recommendations based on behavioral finance principles?";
-    } else {
-      response = "I can help you manage your finances better with AI-powered insights! I can create budgets, set saving goals, optimize investments, analyze spending patterns, or plan for long-term financial goals. What specific area would you like assistance with?";
     }
-
-    const assistantMessage: AssistantMessage = {
-      role: "assistant",
-      content: response,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, assistantMessage]);
-  };
-
-  const handleSuggestionClick = (suggestion: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    setInputValue(suggestion);
-    const userMessage: AssistantMessage = {
-      role: "user",
-      content: suggestion,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setIsLoading(true);
-
-    setTimeout(() => {
-      generateResponse(suggestion);
-      setIsLoading(false);
-    }, 1500);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -164,33 +140,14 @@ const DashboardAssistant = () => {
     }
   };
 
-  if (isMinimized) {
-    return (
-      <div 
-        className="fixed bottom-6 right-6 z-50"
-        onClick={toggleMinimized}
-      >
-        <Button 
-          className="bg-primary text-white p-3 rounded-full hover:bg-primary/90 shadow-lg flex items-center justify-center animate-pulse"
-        >
-          <Bot className="w-6 h-6" />
-        </Button>
-      </div>
-    );
-  }
+  const handleRecommendationClick = (prompt: string) => {
+    setInputValue(prompt);
+    handleSendMessage();
+  };
 
   return (
-    <Card 
-      ref={assistantRef}
-      className={cn(
-        "transition-all duration-300 ease-in-out overflow-hidden bg-card border shadow-md",
-        isExpanded 
-          ? "fixed inset-0 md:inset-8 z-50 animate-fade-in" 
-          : "w-full animate-enter",
-        animationState === "animating" && "scale-95 opacity-80"
-      )}
-    >
-      <CardHeader className="bg-primary/5 p-4 flex flex-row items-center justify-between space-y-0">
+    <div className="flex flex-col h-full">
+      <CardHeader className="bg-primary/5 p-4 flex flex-row items-center justify-between space-y-0 border-b">
         <CardTitle className="text-xl flex items-center gap-2">
           <Bot className="h-5 w-5" />
           <span>Kuberium Assistant</span>
@@ -199,150 +156,77 @@ const DashboardAssistant = () => {
             <span>AI-Powered</span>
           </div>
         </CardTitle>
-        <div className="flex gap-1">
-          <Button variant="ghost" size="icon" onClick={toggleExpanded} className="h-8 w-8 transition-transform duration-300">
-            {isExpanded ? <MinimizeIcon className="h-4 w-4" /> : <MaximizeIcon className="h-4 w-4" />}
-          </Button>
-          <Button variant="ghost" size="icon" onClick={toggleMinimized} className="h-8 w-8 transition-transform hover:scale-110 duration-300">
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
       </CardHeader>
       
-      <CardContent 
-        className={cn(
-          "p-4 overflow-y-auto transition-all duration-300 ease-in-out",
-          isExpanded ? 'h-[calc(100vh-13rem)] md:h-[calc(100vh-17rem)]' : 'max-h-[250px]'
-        )}
-      >
+      <div className="flex-1 overflow-y-auto p-4">
         <div className="space-y-4">
           {messages.map((message, index) => (
             <div
               key={index}
               className={cn(
-                "flex gap-2 transition-all duration-300 animate-enter",
-                message.role === "assistant" ? "flex-row" : "flex-row-reverse"
+                "flex items-start gap-3 rounded-lg p-4",
+                message.role === "assistant" 
+                  ? "bg-muted/50" 
+                  : "bg-primary/5"
               )}
             >
-              <div
-                className={cn(
-                  "w-8 h-8 rounded-full flex items-center justify-center text-white transition-all duration-300",
-                  message.role === "assistant" ? "bg-primary" : "bg-secondary"
-                )}
-              >
-                {message.role === "assistant" ? (
-                  <Bot className="h-4 w-4" />
-                ) : (
-                  <User className="h-4 w-4" />
-                )}
-              </div>
-              <div
-                className={cn(
-                  "rounded-lg py-2 px-3 max-w-[90%] shadow-sm transition-all duration-300",
-                  message.role === "assistant"
-                    ? "bg-muted text-foreground"
-                    : "bg-primary text-primary-foreground"
-                )}
-              >
-                <div className="whitespace-pre-wrap text-sm">{message.content}</div>
-                <div className="text-xs opacity-70 mt-1">
-                  {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </div>
+              {message.role === "assistant" ? (
+                <Bot className="h-6 w-6 mt-1" />
+              ) : (
+                <User className="h-6 w-6 mt-1" />
+              )}
+              <div className="flex-1">
+                <p className="text-sm">{message.content}</p>
               </div>
             </div>
           ))}
+          
+          {messages.length === 1 && (
+            <div className="mt-6">
+              <h3 className="text-sm font-medium mb-3">Quick Recommendations</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {quickRecommendations.map((rec, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleRecommendationClick(rec.prompt)}
+                    className="flex items-center justify-between p-3 text-sm rounded-lg border bg-card hover:bg-accent hover:text-accent-foreground transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      {rec.icon}
+                      <span>{rec.text}</span>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {isLoading && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Bot className="h-5 w-5 animate-pulse" />
+              <span className="animate-pulse">Thinking...</span>
+            </div>
+          )}
           <div ref={messagesEndRef} />
         </div>
-        
-        {isLoading && (
-          <div className="flex items-center justify-center mt-4 animate-pulse">
-            <div className="flex gap-2 items-center bg-primary/10 px-4 py-2 rounded-md">
-              <div className="h-2 w-2 bg-primary rounded-full animate-ping"></div>
-              <span className="text-sm">Kuberium AI is thinking...</span>
-            </div>
-          </div>
-        )}
-      </CardContent>
-      
-      {!isLoading && messages[messages.length - 1]?.role === "assistant" && (
-        <div className="px-4 pb-2">
-          <div className="flex flex-wrap gap-2 animate-slideUp">
-            {suggestions.map((suggestion, index) => (
-              <Button 
-                key={index}
-                variant="outline" 
-                size="sm" 
-                className="text-xs transition-all duration-300 hover:bg-primary hover:text-white"
-                onClick={(e) => handleSuggestionClick(suggestion, e)}
-              >
-                {suggestion.length > (isExpanded ? 30 : 20) ? suggestion.substring(0, isExpanded ? 30 : 20) + "..." : suggestion}
-              </Button>
-            ))}
-          </div>
-        </div>
-      )}
-      
-      <CardFooter className="p-4 pt-2 border-t">
-        <form onSubmit={handleSendMessage} className="flex w-full items-center space-x-2">
+      </div>
+
+      <div className="border-t p-4 bg-background">
+        <form onSubmit={handleSendMessage} className="flex gap-2">
           <Input
-            placeholder="Ask about your finances..."
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyPress}
-            disabled={isLoading}
-            className="flex-1 transition-all duration-300 focus:ring-2 focus:ring-primary"
+            onKeyPress={handleKeyPress}
+            placeholder="Type your message..."
+            className="flex-1"
           />
-          <Button 
-            type="submit" 
-            size="icon"
-            disabled={isLoading || !inputValue.trim()}
-            className="transition-all duration-300 hover:scale-105"
-          >
+          <Button type="submit" disabled={isLoading}>
             <Send className="h-4 w-4" />
           </Button>
         </form>
-      </CardFooter>
-      
-      {isExpanded && (
-        <div className="p-4 bg-primary/5 border-t animate-fadeIn">
-          <h4 className="font-medium text-sm mb-2">Kuberium AI-Powered Features:</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
-            <div className="flex items-center gap-2 bg-background p-2 rounded-md shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
-              <Brain className="h-5 w-5 text-primary" />
-              <span className="text-sm">Financial Insights</span>
-            </div>
-            <div className="flex items-center gap-2 bg-background p-2 rounded-md shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
-              <Coins className="h-5 w-5 text-primary" />
-              <span className="text-sm">Investment Planning</span>
-            </div>
-            <div className="flex items-center gap-2 bg-background p-2 rounded-md shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
-              <FileSpreadsheet className="h-5 w-5 text-primary" />
-              <span className="text-sm">Wealth Optimization</span>
-            </div>
-            <div className="flex items-center gap-2 bg-background p-2 rounded-md shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
-              <HandHeart className="h-5 w-5 text-primary" />
-              <span className="text-sm">Behavioral Finance</span>
-            </div>
-            <div className="flex items-center gap-2 bg-background p-2 rounded-md shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
-              <PiggyBank className="h-5 w-5 text-primary" />
-              <span className="text-sm">Automated Budgeting</span>
-            </div>
-            <div className="flex items-center gap-2 bg-background p-2 rounded-md shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              <span className="text-sm">Predictive Analytics</span>
-            </div>
-            <div className="flex items-center gap-2 bg-background p-2 rounded-md shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
-              <Target className="h-5 w-5 text-primary" />
-              <span className="text-sm">Smart Goals</span>
-            </div>
-            <div className="flex items-center gap-2 bg-background p-2 rounded-md shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
-              <Users className="h-5 w-5 text-primary" />
-              <span className="text-sm">Human Advisors</span>
-            </div>
-          </div>
-        </div>
-      )}
-    </Card>
+      </div>
+    </div>
   );
 };
 
