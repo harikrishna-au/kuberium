@@ -74,7 +74,7 @@ export const postService = {
       }
 
       const response = await fetch(
-        `http://172.168.30.49:3001/api/posts?limit=${limit}&startAfter=${startAfter}`,
+        `http://172.168.30.49:3001/api/posts/`,
         {
           headers: {
             'Accept': 'application/json',
