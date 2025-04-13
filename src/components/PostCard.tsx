@@ -17,12 +17,27 @@ interface PostCardProps {
 export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onTrust }) => {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | number | Date | null | undefined) => {
+    if (!dateString) return 'No date';
+    
     try {
-      const date = parseISO(dateString);
+      let date: Date;
+      
+      if (typeof dateString === 'string') {
+        // Try to create a date directly first
+        date = new Date(dateString);
+      } else if (dateString instanceof Date) {
+        date = dateString;
+      } else if (typeof dateString === 'number') {
+        date = new Date(dateString);
+      } else {
+        return 'Invalid date';
+      }
+
       if (!isValid(date)) {
         return 'Invalid date';
       }
+
       return formatDistanceToNow(date, { addSuffix: true });
     } catch (error) {
       console.error('Date parsing error:', error);
@@ -117,4 +132,5 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onTrust }) => 
     </Card>
   );
 };
+
 

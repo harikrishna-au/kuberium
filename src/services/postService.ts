@@ -37,7 +37,7 @@ let authToken = '';  // Declare the authToken variable
 
 const login = async () => {
   try {
-    const response = await fetch('https://sus-server.onrender.com/api/users/login', {
+    const response = await fetch('https://f35d-117-250-212-179.ngrok-free.app/api/users/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -74,7 +74,7 @@ export const postService = {
       }
 
       const response = await fetch(
-        `https://sus-server.onrender.com/api/posts?limit=${limit}&startAfter=${startAfter}`,
+        `http://172.168.30.49:3001/api/posts?limit=${limit}&startAfter=${startAfter}`,
         {
           headers: {
             'Accept': 'application/json',
@@ -84,13 +84,34 @@ export const postService = {
         }
       );
       
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error(`Expected JSON response but got ${contentType}`);
+      }
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       const data = await response.json();
-      return data;
+      
+      // Ensure the data has the expected structure
+      if (!data.posts || !Array.isArray(data.posts)) {
+        console.error('Unexpected data structure:', data);
+        return { posts: [], lastVisible: '', hasMore: false };
+      }
+
+      return {
+        posts: data.posts.map((post: any) => ({
+          ...post,
+          createdAt: post.createdAt || new Date().toISOString(), // Ensure createdAt exists
+        })),
+        lastVisible: data.lastVisible || '',
+        hasMore: !!data.hasMore
+      };
     } catch (error) {
       console.error('Error fetching posts:', error);
       return { posts: [], lastVisible: '', hasMore: false };
@@ -171,6 +192,8 @@ export const postService = {
     });
   },
 };
+
+
 
 
 
