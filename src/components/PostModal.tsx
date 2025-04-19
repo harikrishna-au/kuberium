@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { X } from 'lucide-react';
 import { Post } from '@/services/postService';
@@ -86,7 +87,7 @@ export const PostModal: React.FC<PostModalProps> = ({ post, onClose, onLike, onT
                   )}
                 >
                   <Award className="w-5 h-5 mr-2" />
-                  <span>{post.trust}</span>
+                  <span>{typeof post.trust === 'object' ? post.trust.sum : post.trust}</span>
                 </Button>
                 <Button
                   variant="ghost"

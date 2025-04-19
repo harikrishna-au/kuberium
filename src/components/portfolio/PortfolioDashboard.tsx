@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AreaChart, LineChart, BarChart, PieChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, Area, Line, Bar, Pie, Cell } from "recharts";
+import { AreaChart, LineChart, BarChart, PieChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, Area, Line, Bar, Pie, Cell, CartesianGrid } from "recharts";
 import { CalendarIcon, ArrowUpRight, ArrowDownRight, Filter, ChartPie } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
