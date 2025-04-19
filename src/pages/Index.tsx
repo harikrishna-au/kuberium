@@ -14,7 +14,7 @@ const Index = () => {
             className="w-16 h-16 mr-4"
           />
           <div>
-            <h2 className="text-2xl font-bold text-primary">Welcome, Hari Krishna</h2>
+            <h2 className="text-2xl font-bold text-primary">Welcome, Demo User</h2>
             <p className="text-muted-foreground">Your financial wellness journey continues</p>
           </div>
         </CardContent>

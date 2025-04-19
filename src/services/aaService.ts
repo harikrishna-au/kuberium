@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -34,17 +33,13 @@ interface AAData {
 export const processAAJsonData = async (jsonData: string): Promise<boolean> => {
   try {
     const data: AAData = JSON.parse(jsonData);
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      throw new Error("User not authenticated");
-    }
+    const userId = 'dummy-user-id'; // Use dummy user id
 
     // 1. Update user settings
     const { error: settingsError } = await supabase
       .from('user_settings')
       .upsert({
-        user_id: user.id,
+        user_id: userId,
         aa_uid: data.customer.id,
         name: data.customer.name,
         email: data.customer.email,
@@ -61,7 +56,7 @@ export const processAAJsonData = async (jsonData: string): Promise<boolean> => {
       const { error: accountError } = await supabase
         .from('expenses')
         .upsert({
-          user_id: user.id,
+          user_id: userId,
           amount: account.balance,
           description: `Bank account: ${account.bank} - ${account.type}`,
           category: null,
@@ -74,7 +69,7 @@ export const processAAJsonData = async (jsonData: string): Promise<boolean> => {
 
       // 3. Store transactions as expenses
       const transactions = account.transactions.map(tx => ({
-        user_id: user.id,
+        user_id: userId,
         amount: tx.amount,
         description: tx.description,
         date: tx.date,
@@ -106,26 +101,11 @@ export const processAAJsonData = async (jsonData: string): Promise<boolean> => {
 
     const { error: categoryError } = await supabase
       .from('categories')
-      .upsert(
-        defaultCategories.map(category => ({
-          name: category.name,
-          icon: category.icon,
-          color: category.color
-        })),
-        { onConflict: 'name' }
-      );
+      .upsert(defaultCategories, { onConflict: 'name' });
 
     if (categoryError) throw categoryError;
 
-    // 5. Update user metadata
-    const { error: userUpdateError } = await supabase.auth.updateUser({
-      data: {
-        aa_connected: true
-      }
-    });
-
-    if (userUpdateError) throw userUpdateError;
-
+    // 5. Update user metadata (skipped since we're not using auth)
     toast.success("AA data successfully imported!");
     return true;
 

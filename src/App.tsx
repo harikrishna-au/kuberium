@@ -34,21 +34,19 @@ function App() {
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/" element={<ProtectedRoute><Layout><Index /></Layout></ProtectedRoute>} />
-              <Route path="/feed" element={<ProtectedRoute><Layout><Feed /></Layout></ProtectedRoute>} />
-              <Route path="/analytics" element={<ProtectedRoute><Layout><Analytics /></Layout></ProtectedRoute>} />
-              <Route path="/budgets" element={<ProtectedRoute><Layout><Budgets /></Layout></ProtectedRoute>} />
-              <Route path="/goals" element={<ProtectedRoute><Layout><Goals /></Layout></ProtectedRoute>} />
-              <Route path="/investments" element={<ProtectedRoute><Layout><Investments /></Layout></ProtectedRoute>} />
-              <Route path="/portfolio" element={<ProtectedRoute><Layout><Portfolio /></Layout></ProtectedRoute>} />
-              <Route path="/tax-optimization" element={<ProtectedRoute><Layout><TaxOptimization /></Layout></ProtectedRoute>} />
-              <Route path="/financial-habits" element={<ProtectedRoute><Layout><FinancialHabits /></Layout></ProtectedRoute>} />
-              <Route path="/advisors" element={<ProtectedRoute><Layout><Advisors /></Layout></ProtectedRoute>} />
-              <Route path="/notifications" element={<ProtectedRoute><Layout><Notifications /></Layout></ProtectedRoute>} />
-              <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
-              <Route path="/ai" element={<ProtectedRoute><Layout><KuberiumAI /></Layout></ProtectedRoute>} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="/" element={<Layout><Index /></Layout>} />
+              <Route path="/feed" element={<Layout><Feed /></Layout>} />
+              <Route path="/analytics" element={<Layout><Analytics /></Layout>} />
+              <Route path="/budgets" element={<Layout><Budgets /></Layout>} />
+              <Route path="/goals" element={<Layout><Goals /></Layout>} />
+              <Route path="/investments" element={<Layout><Investments /></Layout>} />
+              <Route path="/portfolio" element={<Layout><Portfolio /></Layout>} />
+              <Route path="/tax-optimization" element={<Layout><TaxOptimization /></Layout>} />
+              <Route path="/financial-habits" element={<Layout><FinancialHabits /></Layout>} />
+              <Route path="/advisors" element={<Layout><Advisors /></Layout>} />
+              <Route path="/notifications" element={<Layout><Notifications /></Layout>} />
+              <Route path="/settings" element={<Layout><Settings /></Layout>} />
+              <Route path="/ai" element={<Layout><KuberiumAI /></Layout>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

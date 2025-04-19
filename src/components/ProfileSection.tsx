@@ -2,15 +2,12 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
-import { useAuth } from "@/components/AuthProvider";
 
 interface ProfileSectionProps {
   handleSignOut: () => Promise<void>;
 }
 
 const ProfileSection = ({ handleSignOut }: ProfileSectionProps) => {
-  const { user } = useAuth();
-  
   return (
     <div className="mt-auto">
       <div className="p-4 bg-muted rounded-lg">
@@ -23,8 +20,8 @@ const ProfileSection = ({ handleSignOut }: ProfileSectionProps) => {
             />
           </div>
           <div className="ml-3">
-            <p className="text-sm font-medium">Hari Krishna</p>
-            <p className="text-xs text-muted-foreground">{user?.email || 'Premium Plan'}</p>
+            <p className="text-sm font-medium">Demo User</p>
+            <p className="text-xs text-muted-foreground">demo@example.com</p>
           </div>
         </div>
         <div className="mt-3 flex space-x-2">

@@ -1,6 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import React, { createContext, useContext } from "react";
 import { Session, User } from "@supabase/supabase-js";
 
 interface AuthContextProps {
@@ -10,48 +9,40 @@ interface AuthContextProps {
   signOut: () => Promise<void>;
 }
 
+const dummyUser: User = {
+  id: 'dummy-user-id',
+  email: 'user@example.com',
+  created_at: new Date().toISOString(),
+  aud: 'authenticated',
+  role: 'authenticated',
+} as User;
+
+const dummySession: Session = {
+  access_token: 'dummy-token',
+  token_type: 'bearer',
+  expires_in: 3600,
+  refresh_token: 'dummy-refresh',
+  user: dummyUser,
+} as Session;
+
 const AuthContext = createContext<AuthContextProps>({
-  session: null,
-  user: null,
-  loading: true,
+  session: dummySession,
+  user: dummyUser,
+  loading: false,
   signOut: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, []);
-
   const signOut = async () => {
-    await supabase.auth.signOut();
+    // Do nothing since we're using dummy data
   };
 
   const value = {
-    session,
-    user,
-    loading,
+    session: dummySession,
+    user: dummyUser,
+    loading: false,
     signOut,
   };
 
