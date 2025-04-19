@@ -21,6 +21,7 @@ import FinancialHabits from "./pages/FinancialHabits";
 import Advisors from "./pages/Advisors";
 import KuberiumAI from "./pages/KuberiumAI";
 import Feed from "./pages/Feed";
+import Portfolio from "./pages/Portfolio";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ function App() {
               <Route path="/budgets" element={<ProtectedRoute><Layout><Budgets /></Layout></ProtectedRoute>} />
               <Route path="/goals" element={<ProtectedRoute><Layout><Goals /></Layout></ProtectedRoute>} />
               <Route path="/investments" element={<ProtectedRoute><Layout><Investments /></Layout></ProtectedRoute>} />
+              <Route path="/portfolio" element={<ProtectedRoute><Layout><Portfolio /></Layout></ProtectedRoute>} />
               <Route path="/tax-optimization" element={<ProtectedRoute><Layout><TaxOptimization /></Layout></ProtectedRoute>} />
               <Route path="/financial-habits" element={<ProtectedRoute><Layout><FinancialHabits /></Layout></ProtectedRoute>} />
               <Route path="/advisors" element={<ProtectedRoute><Layout><Advisors /></Layout></ProtectedRoute>} />

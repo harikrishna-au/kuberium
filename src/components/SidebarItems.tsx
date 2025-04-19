@@ -3,7 +3,7 @@ import React from "react";
 import { 
   Home, BarChart3, Wallet, Target, BellRing, Settings,
   Brain, Coins, FileSpreadsheet, HandHeart, UsersRound,
-  Newspaper, Bot
+  Newspaper, Bot, ChartPie
 } from "lucide-react";
 import { Location } from "react-router-dom";
 import SidebarItem from "@/components/SidebarItem";
@@ -39,7 +39,12 @@ const SidebarItems = ({ location, closeSidebar }: SidebarItemsProps) => {
       to: "/analytics",
       active: location.pathname === "/analytics"
     },
-   
+    {
+      icon: <ChartPie />,
+      label: "Portfolio",
+      to: "/portfolio",
+      active: location.pathname === "/portfolio"
+    },
     {
       icon: <Target />,
       label: "Goals",
