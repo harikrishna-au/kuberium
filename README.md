@@ -1,3 +1,6 @@
+
+
+````markdown
 # 🚀 KUBERIUM
 
 *Empowering Innovation, Accelerating Your Digital Future*
@@ -31,9 +34,9 @@
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
   - [Running the App](#running-the-app)
-  - [Testing](#testing)
 - [Contributing](#-contributing)
 - [License](#-license)
+- [Contact](#-contact)
 
 ---
 
@@ -78,48 +81,59 @@ Clone and install dependencies:
 git clone https://github.com/harikrishna-au/kuberium.git
 cd kuberium
 npm install
+````
 
+### Running the App
 
-Running the App
 Start the development server:
 
-bash
-Copy
-Edit
+```bash
 npm run dev
-The app will be available at http://localhost:5173.
+```
 
-🤝 Contributing
-We welcome contributions! Feel free to fork the repository and open a pull request.
-
-🍴 Fork the Project
-
-🛠️ Create your Feature Branch (git checkout -b feature/AmazingFeature)
-
-✅ Commit your Changes (git commit -m 'Add some AmazingFeature')
-
-🚀 Push to the Branch (git push origin feature/AmazingFeature)
-
-📝 Open a Pull Request
-
-📄 License
-Distributed under the MIT License. See LICENSE for more information.
-
-📫 Contact
-Built with 💙 by @harikrishna-au
-
-© 2025 Kuberium — Accelerating Your Digital Future
-
-yaml
-Copy
-Edit
+The app will be available at [http://localhost:5173](http://localhost:5173)
 
 ---
 
-Let me know if you want to add:
+## 🤝 Contributing
 
-- A `Demo` section with screenshots
-- A `Roadmap` for upcoming features
-- Deployment instructions for platforms like Vercel/Netlify
+We welcome contributions! Feel free to fork the repository and open a pull request.
 
-I'm happy to help tailor this further.
+### Steps:
+
+1. 🍴 Fork the Project
+2. 🛠️ Create your Feature Branch
+
+   ```bash
+   git checkout -b feature/AmazingFeature
+   ```
+3. ✅ Commit your Changes
+
+   ```bash
+   git commit -m "Add some AmazingFeature"
+   ```
+4. 🚀 Push to the Branch
+
+   ```bash
+   git push origin feature/AmazingFeature
+   ```
+5. 📝 Open a Pull Request
+
+---
+
+## 📄 License
+
+Distributed under the **MIT License**. See [`LICENSE`](./LICENSE) for more information.
+
+---
+
+## 📫 Contact
+
+Built with 💙 by [@harikrishna-au](https://github.com/harikrishna-au)
+
+© 2025 Kuberium — Accelerating Your Digital Future
+
+
+
+
+```
