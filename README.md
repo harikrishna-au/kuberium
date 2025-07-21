@@ -1,6 +1,5 @@
 
 
-````markdown
 # 🚀 KUBERIUM
 
 *Empowering Innovation, Accelerating Your Digital Future*
@@ -23,7 +22,7 @@
 ![ESLint](https://img.shields.io/badge/ESLint-4B32C3.svg?style=flat&logo=ESLint&logoColor=white)
 ![PostCSS](https://img.shields.io/badge/PostCSS-DD3A0A.svg?style=flat&logo=PostCSS&logoColor=white)
 ![date-fns](https://img.shields.io/badge/date--fns-770C56.svg?style=flat&logo=date-fns&logoColor=white)
-
+![Loveable](https://img.shields.io/badge/Loveable-E65F9E.svg?style=flat&logo=Love&logoColor=white)
 ---
 
 ## 📚 Table of Contents
@@ -136,4 +135,3 @@ Built with 💙 by [@harikrishna-au](https://github.com/harikrishna-au)
 
 
 
-```
